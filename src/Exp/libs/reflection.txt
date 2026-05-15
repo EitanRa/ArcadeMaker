@@ -1,0 +1,98 @@
+﻿namespace reflection:
+
+class Property (const name, const value, const prvt, const isConst)
+{
+	private constructor() {}
+}
+
+class FunctionInfo (const definedAt, const name, const params, const prvt, const isStatic)
+{
+	private constructor() {}
+
+	func invoke(inst?, args)
+	{
+	    // BUILTIN FUNCTION
+	}
+}
+
+class ConstructorInfo (const type, const params, const prvt, const isStatic)
+{
+	private constructor() {}
+}
+
+class AttributeInfo (const type, const ns, const name, const values)
+{
+    private constructor() {}
+}
+
+func getAttr(type)
+{
+	// BUILTIN FUNCTION
+}
+
+func getAttr(type, prop)
+{
+    // BUILTIN FUNCTION
+}
+
+func getAttr(type, fnc, paramsCount)
+{
+	// BUILTIN FUNCTION
+}
+
+func getCtorAttr(type, paramsCount)
+{
+	return getAttr(type, type.name + ".ctor", paramsCount)
+}
+
+func getProperties(inst)
+{
+	// BUILTIN FUNCTION
+}
+
+func getProperty(inst, name)
+{
+	// BUILTIN FUNCTION
+}
+
+func setProperty(inst, name, value?)
+{
+	// BUILTIN FUNCTION
+}
+
+func getFunctions(type)
+{
+	// BUILTIN FUNCTION
+}
+
+func getFunction(type, name, paramsCount)
+{
+	const fs = getFunctions(type)
+	return fs.first(func(i) => i.name == name & i.params.length() == paramsCount)
+}
+
+func getConstructors(type)
+{
+	// BUILTIN FUNCTION
+}
+
+func getConstructor(type, paramsCount)
+{
+	const ctors = getConstructors(type)
+	return ctors.first(func(i) => i.params.length() == paramsCount)
+}
+
+func invoke(inst, name, args)
+{
+	// BUILTIN FUNCTION
+}
+
+func getTypeByName(name)
+{
+	// BUILTIN FUNCTION
+}
+
+func createInstance(type, args)
+{
+	// BUILTIN FUNCTION
+}

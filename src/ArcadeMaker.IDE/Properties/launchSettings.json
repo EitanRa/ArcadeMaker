@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ArcadeMaker.IDE": {
+      "commandName": "Project",
+      "commandLineArgs": "C:\\Users\\איתן\\Desktop\\testgp1\\testgp1.gsp"
+    }
+  }
+}

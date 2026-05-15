@@ -1,0 +1,118 @@
+﻿using system
+using reflection
+
+namespace json:
+
+@AllowFor(false, true, false, false, false)
+attribute JsonRelateAs(system::Type type)
+
+@AllowFor(false, true, false, false, false)
+attribute JsonIgnore()
+
+class JsonSerializer (const types)
+{
+    constructor(types)
+    {
+        this.types = types
+    }
+    
+    func serialize(inst?)
+    {
+        // if it's not an instance of a class (or it's a string), return it
+        if inst == null | inst is number | inst is char | inst is bool | inst is string
+        {
+            return inst
+        }
+        
+        // get all properties
+        const props = getProperties(inst)
+
+        // add them to a JsonObject
+        const json = new JsonObject()
+        foreach p in props
+        {
+            json.values.add(new JsonValue(p.name, serialize(p.value)))
+        }
+        
+        return json
+    }
+
+    func deserialize(type, json)
+    {
+        if type is not Type
+        {
+            throw new Exception(Exception.INVALID_ARGUMENT, "Argument type must be of type system::Type")
+        }
+        if json is not JsonObject
+        {
+            throw new Exception(Exception.INVALID_ARGUMENT, "Argument json must be of type system_text::JsonObject")
+        }
+        
+        // find a constructor which all of its arguments exist in the json
+        const ctors = getConstructors(type)
+        
+        foreach ctor in ctors : id ctors_loop
+        {
+            const ctorArgs = new List() // ordered
+            foreach param in ctor.params
+            {
+                var prop = json.values.first(func(p) { return param == p.name })
+                if prop != null
+                {
+                    var val = prop.value
+                    if (val is JsonObject)
+                    {
+                        var attributes = getAttr(type, prop.name)
+                        var attr = attributes.first(func(a) { throw new Exception("fix typeof") /*a.type == typeof JsonRelateAs */})
+                        if (attr == null)
+                        {
+                            throw new Exception(Exception.INVALID_OPERATION, type.fullName + "." + prop.name + " was an instance of a class, but no JsonRelateAs tag was set to this property.")
+                        }
+                        val = deserialize(attr.values[0], val)
+                    }
+                    ctorArgs.add(val)
+                }
+                else
+                {
+                    continue ctors_loop
+                }
+            }
+            
+            if ctor.params.length() > 0 { return createInstance(type, ctorArgs.toArray()) }
+        }
+        
+        throw new Exception(type.fullName + " does not contain a ctor which all of its parameters are included in the given JSON.")
+    }
+    
+    private func isBasic(obj)
+    {
+        return obj == null | obj is number | obj is char | obj is bool | obj is string
+    }
+}
+
+class JsonObject (const values basearray)
+{
+    constructor()
+    {
+        values = new List()
+    }
+        
+    @Translator func toString()
+    {
+        var s = "{ "
+        foreach v in this : counter i
+        {
+            s = s + "\"" + v.name + "\": " + stringOf(v.value) + (i < values.count() - 1 ? ", " : " ")
+        }
+        return s + " }"
+    }
+}
+
+class JsonValue (name, value)
+{
+    constructor(name, value?)
+    {
+        this.name = name
+        this.value = value
+    }
+}

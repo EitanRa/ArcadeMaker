@@ -1,0 +1,678 @@
+﻿namespace system:
+
+@AllowFor(false, false, false, false, true)
+@AllowMultiple
+attribute ExpectFunc(string name, number paramsCount, bool stat)
+
+@AllowFor(true, false, false, false, false)
+@ExpectFunc("it_hasNext", 0, false)
+@ExpectFunc("it_next"   , 0, false)
+@ExpectFunc("it_reset"  , 0, false)
+attribute Iteratable()
+
+enum StaticRequirements
+{
+    RequireStatic,
+    RequireNonStatic,
+    DoNotRequire
+}
+
+class Array (const csType private) 
+{
+    constructor(len) 
+    {
+        // BUILTIN FUNCTION
+    }
+    
+    func set(i, operator, val?)
+    {
+        // BUILTIN FUNCTION
+    }
+    
+    func get(i)
+    {
+        // BUILTIN FUNCTION
+    }
+    
+    func length() 
+    {
+        return lenof this
+    }
+    
+    func map(mod) 
+    {
+        const n = new Array(lenof this)
+        foreach i in this : counter ind
+        {
+            n[ind] = mod(i)
+        }
+        return n
+    }
+    
+    func first(cond) 
+    {
+        if cond is not function
+        {
+            throw new Exception("This function takes a function as parameter.") 
+        }
+        foreach item in this
+        {
+            if cond(item) == true
+            {
+                return item
+            }
+        }
+        return null
+    }
+    
+    func findAll(cond) 
+    {
+        if cond is not function
+        {
+            throw new Exception ("This function takes a function as parameter.") 
+        }
+        const all = new List() 
+        foreach item in this
+        {
+            if cond(item) == true
+            {
+                all.add(item) 
+            }
+        }
+        return all
+    }
+
+    func select(selector)
+    {
+        const n = new Array(length())
+        foreach x in this : counter i
+        {
+            n[i] = selector(x)
+        }
+        return n
+    }
+
+    func ofType(type)
+    {
+        const n = new List()
+        foreach x in this
+        {
+            if (x != null & Type.get(x) == type)
+            {
+                n.add(x)
+            }
+        }
+        return n.toArray()
+    }
+    
+    /*
+    func orderBy(getNum)
+    {
+        const n = copy()
+        const nums = new List()
+        foreach item in this : counter i
+        {
+            var num = getNum(item)
+            nums.add(num)
+            var ind = i
+            while ind > 0 & nums.get(ind - 1) > num
+            {
+                var x = this[ind - 1]
+                this[ind - 1] = item
+                this[ind] = 
+            }
+        }
+    }
+    */
+    
+    func copy() 
+    {
+        return map(func(item?) => item) 
+    }
+
+    func forEach(action)
+    {
+        foreach item in this : counter i
+        {
+            action(item, i)
+        }
+    }
+}
+
+class string (const chars private basearray) 
+{
+    @Equalizer func equals(obj?)
+    {
+        if obj is not string | obj.length() != length()
+        {
+            return false
+        }
+        foreach c in chars : counter i
+        {
+            if c != obj.charAt(i)
+            {
+                return false
+            }
+        }
+        
+        return true
+    }
+    
+    constructor (carr)
+    {
+        if carr is not Array
+        { 
+            throw new Exception ("Argument must be an array.") 
+        } 
+        foreach c in carr 
+        { 
+            if c is not char 
+            { 
+                throw new Exception ("Argument must be an array of chars.") 
+            } 
+        } 
+        chars = carr
+    }
+    
+    constructor() 
+    { 
+        chars = new Array(0)
+    }
+    
+    func charAt(index) 
+    {
+        return chars[index]
+    }
+    
+    func length() 
+    {
+        return lenof chars
+    }
+    
+    func substr(stind, len)
+    {
+        var str = ""
+        for (var i = stind; i < stind + len; i++)
+        {
+            str += chars[i]
+        }
+        return str
+    }
+
+    @ReadOnly func remove(start, count)
+    {
+        var str = ""
+
+        foreach c in chars : counter i
+        {
+            if i < start | i >= start + count
+            {
+                str += c
+            }
+        }
+
+        return str
+    }
+    
+    func toCharArr() => chars.copy()
+    
+    func split(c)
+    {
+        const ls = new List()
+        var str = ""
+        
+        foreach x in chars
+        {
+            if x == c
+            {
+                ls.add(str)
+                str = ""
+            }
+            else
+            {
+                str += x
+            }
+        }
+        
+        ls.add(str)
+        return ls.toArray()
+    }
+    
+    func toNum()
+    {
+        var result = 0.0
+        var sign = 1.0
+        var fractionMultiplier = 0.1
+        var hasDecimalPoint = false
+        var i = 0
+
+        // handle sign
+        if charAt(0) == '-'
+        {
+            sign = 0 - 1
+            i = 1
+        }
+        else 
+        { if charAt(0) == '+'
+        {
+            i = 1
+        } }
+
+        for (; i < length(); i++)
+        {
+            var c = charAt(i)
+
+            if c == '.'
+            {
+                if hasDecimalPoint
+                {
+                    throw new Exception("Multiple decimal points")
+                }
+
+                hasDecimalPoint = true
+                continue
+            }
+
+            if c < '0' | c > '9'
+            {
+                throw new Exception("Invalid character: '" + c + "'")
+            }
+
+            if hasDecimalPoint == false
+            {
+                // before the decimal point
+                result = result * 10 + (c - '0')
+            }
+            else
+            {
+                // after the decimal point
+                result = result + (c - '0') * fractionMultiplier
+                fractionMultiplier = fractionMultiplier * 0.1
+            }
+        }
+
+        return result * sign
+    }
+}
+
+@AllowFor(true, false, false, false, false)
+@ExpectFunc("getType", 0, false)
+@ExpectFunc("getMessage", 0, false)
+@ExpectFunc("getData", 0, false)
+attribute Throwable()
+
+@Throwable
+class Exception (msg, type, const source, const line, const col, data)
+{
+    static const INDEX_OUT_OF_RANGE = "INDEX_OUT_OF_RANGE"
+    static const ARGUMENT_NULL = "ARGUMENT_NULL"
+    static const NULL_REFERENCE = "NULL_REFERENCE"
+    static const INVALID_ARGUMENT = "INVALID_ARGUMENT"
+    static const INVALID_OPERATION = "INVALID_OPERATION"
+    static const EXTERN_OPERATION_FAILED = "EXTERN_OPERATION_FAILED"
+    static const NOT_FOUND = "NOT_FOUND"
+    static const DIVIDE_BY_ZERO = "DIVIDE_BY_ZERO"
+    static const STACK_OVERFLOW = "STACK_OVERFLOW"
+    
+    constructor (t, m)
+    {
+        type = t
+        msg = m
+    }
+
+    constructor(m) 
+    {
+        this.msg = m
+        this.type = "UNKNOWN"
+    }
+
+    constructor(t, m, d?)
+    {
+        msg = m
+        type = t
+        data = d
+    }
+    
+    func getType() => type
+    func getMessage() => msg
+    func getData() => data
+}
+
+class ExternTypeValue ()
+{
+    private constructor() {}
+    
+    @Translator
+    private func str()
+    {
+        const _this = this
+        return _this.toString()
+    }
+}
+
+class Type (const name, const fullName, const def private)
+{
+    private constructor() {}
+    static func get(obj)
+    {
+        // BUILTIN FUNCTION
+    }
+}
+
+class List (array private basearray) 
+{
+    constructor (arr) 
+    {
+        array = arr
+    }
+    
+    constructor() 
+    {
+        array = []
+    }
+    
+    func add(val?) 
+    {
+        const n = new Array(array.length() + 1)
+        for (var i = 0; i < count(); i++)
+        {
+            n[i] = array[i]
+        }
+        n[n.length() - 1] = val
+        array = n
+    }
+    
+    func remove(index) 
+    {
+        const n = new Array (array.length() - 1) 
+        const len = array.length() 
+        for (var i = 0; i < index; i++)
+        {
+            n[i] = array[i]
+        }
+        for (var i = index + 1 ; i < len ; i++)
+        {
+            n[i - 1] = array[i]
+        }
+        
+        array = n
+    }
+    
+    func setAt(i, val?) 
+    {
+        array[i] = val
+    }
+    
+    func get(i) 
+    {
+        if i is not number | i > count() - 1 | i < 0
+        {
+            throw new Exception("Argument out of range.") 
+        }
+        return array[i] 
+    }
+
+    func first(cond)
+    {
+        return this.array.first(cond)
+    }
+
+    func contains(val?)
+    {
+        return first(func(v) => v == val) != null
+    }
+
+    func findAll(cond)
+    {
+        return this.array.findAll(cond)
+    }
+
+    func clear()
+    {
+        array = []
+    }
+    
+    @ReadOnly func toArray()
+    {
+        return array.copy()
+    }
+    
+    func count() 
+    {
+        return lenof array
+    }
+
+    func indexOf(val?)
+    {
+        foreach x in this : counter c
+        {
+            if (x == val)
+            {
+                return c
+            }
+        }
+        return 0 - 1
+    }
+    
+    @Translator
+    func toString()
+    {
+        var s = "["
+        foreach v in array : counter i
+        {
+            s = s + v
+            if i < count() - 1
+            {
+                s = s + ", "
+            }
+        }
+        return s + "]"
+    }
+    
+    func print()
+    {
+        print toString()
+    }
+}
+
+class Dictionary (const keys private, const values private basearray)
+{
+    constructor()
+    {
+        keys = new List()
+        values = new List()
+    }
+
+    func set(key, val?)
+    {
+        const index = keys.indexOf(key)
+        if (index >= 0)
+        {
+            values.setAt(index, val)
+        }
+        else
+        {
+            keys.add(key)
+            values.add(val)
+        }
+    }
+
+    func get(key)
+    {
+        const index = keys.indexOf(key)
+        if (index < 0)
+        {
+            throw new Exception(Exception.NOT_FOUND ?? "NOT_FOUND", "The specified key was not found.") // TODO: remove not_found coalscing after fixing static vars auto init
+        }
+        return values.get(index)
+    }
+
+    func containsKey(key)
+    {
+        return keys.contains(key)
+    }
+
+    @Translator
+    func toString()
+    {
+        var str = "["
+        foreach x in keys : counter c
+        {
+            str = str + x + ": " + values.get(c)
+            if (c < keys.count() - 1)
+            {
+                str = str + ", "
+            }
+        }
+        return str + "]"
+    }
+}
+
+
+class Date (year, month, day, hour, minute, sec, millis, nanos)
+{
+    constructor(year, month, day, hour, minute)
+    {
+        this.year = year
+        this.month = month
+        this.day = day
+        this.hour = hour
+        this.minute = minute
+    }
+
+    constructor(year, month, day, hour, minute, sec, millis, nanos)
+    {
+        this.year = year
+        this.month = month
+        this.day = day
+        this.hour = hour
+        this.minute = minute
+        this.sec = sec
+        this.millis = millis
+        this.nanos = nanos
+    }
+    
+    constructor()
+    {
+        
+    }
+    
+    func setToNow()
+    {
+        // BUILTIN FUNCTION
+    }
+    
+    @ReadOnly
+    static func now()
+    {
+        const d = new Date()
+        d.setToNow()
+        return d
+    }
+    
+    @Translator
+    func toString()
+    {
+        var h = hour
+        if h < 10
+        {
+            h = "0" + h
+        }
+        var m = minute
+        if m < 10
+        {
+            m = "0" + m
+        }
+        return day + "." + month + "." + year + " " + h + ":" + m
+    }
+
+    func toFullString()
+    {
+        var s = sec
+        if s < 10
+        {
+            s = "0" + s
+        }
+        return toString() + ":" + s + "." + millis + "." + nanos
+    }
+}
+
+class cs()
+{
+    private constructor() {}
+    static func int(n) {}
+    static func byte(n) {}
+    static func float(n) {}
+    static func long(n) {}
+    static func action(f) {}
+    static func exp(o) {}
+}
+
+func refEquals(a?, b?)
+{
+    // BUILTIN FUNCTION
+}
+
+func round(num)
+{
+    const up = num % 1 >= 0.5
+    num = num - num % 1
+    if up
+    {
+        num = num + 1
+    }
+    return num
+}
+
+func stringOf(obj?)
+{
+    return obj + ""
+}
+
+func floor(num)
+{
+    return num - num % 1
+}
+
+func println(text?)
+{
+    print text + "\n"
+}
+
+func setTimeout(millis, action)
+{
+    // BUILTIN FUNCTION
+}
+
+func runAsync(action, onComplete?)
+{
+    // BUILTIN FUNCTION
+}
+
+func runAsync(action)
+{
+    runAsync(action, null)
+}
+
+func pow(a, b)
+{
+    if (b == 0)
+    {
+        return 1
+    }
+
+    const power = a
+    for (var i = 1; i < b; i++)
+    {
+        a = a * power
+    }
+
+    return a
+}
+
+func sign(n)
+{
+    if n > 0 { return 1 }
+    if n < 0 { return -1 }
+    return 0
+}

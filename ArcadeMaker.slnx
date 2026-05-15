@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/doc/" />
+  <Folder Name="/src/">
+    <Project Path="src/ArcadeMaker.Core/ArcadeMaker.Core.csproj" />
+    <Project Path="src/ArcadeMaker.IDE/ArcadeMaker.IDE.csproj" />
+    <Project Path="src/Exp/Exp.csproj" />
+  </Folder>
+  <Folder Name="/src/Engines/" />
+  <Folder Name="/src/Engines/MonoGame/">
+    <Project Path="src/Engines/MonoGame/Core/ArcadeMaker.Engines.MonoGame.Core.csproj" />
+  </Folder>
+  <Folder Name="/src/Engines/MonoGame/Platforms/">
+    <Project Path="src/Engines/MonoGame/Platforms/WindowsDX/ArcadeMaker.Engines.MonoGame.Platforms.WindowsDX.csproj" />
+  </Folder>
+</Solution>

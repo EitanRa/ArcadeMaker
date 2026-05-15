@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="libs\json.txt" />
+    <None Remove="libs\reflection.txt" />
+    <None Remove="libs\system.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="libs\json.txt" />
+    <EmbeddedResource Include="libs\reflection.txt" />
+    <EmbeddedResource Include="libs\system.txt" />
+  </ItemGroup>
+
+</Project>

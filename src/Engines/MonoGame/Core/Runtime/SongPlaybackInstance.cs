@@ -1,0 +1,41 @@
+﻿using ArcadeMaker.Core.Resources;
+using Microsoft.Xna.Framework.Audio;
+using Microsoft.Xna.Framework.Media;
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace ArcadeMaker.Engines.MonoGame.Core.Runtime;
+
+internal class SongPlaybackInstance : ArcadeMaker.Core.Runtime.SoundPlaybackInstance<Song>
+{
+    public override float Volume
+    {
+        get => ArcadeMakerMonoGame.CurrentlyPlayedBackgroundMusic == Instance ? MediaPlayer.Volume : Sound.StartVolume;
+        set
+        {
+            if (ArcadeMakerMonoGame.CurrentlyPlayedBackgroundMusic == Instance)
+                MediaPlayer.Volume = value;
+            else
+                throw new Exception("Volume of a specific background music playback can only be set while it's playing.");
+        }
+    }
+
+    public override float Pan
+    {
+        get => 0;
+        set => throw new NotImplementedException("Cannot set pan for background music.");
+    }
+
+    public override float Pitch
+    {
+        get => 0;
+        set => throw new NotImplementedException("Cannot set pitch for background music.");
+    }
+
+
+    internal SongPlaybackInstance(Sound sound, Song instance) : base(sound, instance)
+    {
+
+    }
+}
