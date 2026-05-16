@@ -412,6 +412,10 @@ namespace ArcadeMaker.Engines.MonoGame.Core
             args[0].ThrowIfNull();
             args[1].ThrowIfNull();
 
+            // TODO: let user select font (by implementing setFont(fontId) function)
+            if (Fonts.Current == null)
+                throw new InvalidOperationException("Game must have at least 1 font to draw text.");
+
             SpriteBatch.DrawString(Fonts.Current, args[2]?.ToString() ?? "NULL", new((float)args[0]!.Number, (float)args[1]!.Number), Color.White);
             return Exp.Void.Return;
         }
