@@ -19,7 +19,8 @@ depth — draw order; lower depth draws on top, higher depth draws behind.
 Object Functions
 
 drawSelf() — draws the instance’s sprite using its current visual properties.  
-startPath(pathId, speed, endAction, absolute) — moves the instance along a path (call it once, e.g. in Create event, and not every frame).  
+startPath(pathId, speed, endAction, absolute) — moves the instance along a path (call it once, e.g. in Create event, and not every frame).
+stopPath() - stops the currently activated path.
 placeMeeting(x, y, objectTypeOrInstance) — returns true if moving to (x, y) would collide with the given object or instance.  
 instanceMeeting(x, y, objectType) — returns the first instance of the given object type at (x, y), or null if none exists.  
 placeFree(x, y) — returns true if the instance can move to (x, y) without colliding with anything solid.  
