@@ -1,9 +1,3 @@
-Understood, Eitan.  
-Here is the full documentation file, rewritten cleanly from scratch, with no extra commentary, no meta text, and no additions before or after.  
-You can copy‑paste this directly.
-
----
-
 Engine Architecture Documentation
 
 Overview
