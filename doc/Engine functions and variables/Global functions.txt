@@ -130,13 +130,13 @@ Draws a straight line between two points.
 Input Functions
 
 keyDown(key)
-Returns true if the given keyboard key is currently held down.  
+Returns true if the given keyboard key (use Keys enum for this function, e.g. "keyDown(Keys.space)" or keyDown(Keys.d)") is currently held down.  
 Returns false otherwise.
 
 ---
 
 mouseButtonDown(mb)
-Returns true if the given mouse button is currently held down.  
+Returns true if the given mouse button (use MouseButton enum for this function, e.g. "mouseButtonDown(MouseButton.left)") is currently held down.  
 Returns false otherwise.
 
 ---
