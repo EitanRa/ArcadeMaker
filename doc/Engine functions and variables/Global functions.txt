@@ -34,7 +34,7 @@ Switches to the next room in the room order.
 ---
 
 goToRoom(roomId)
-Switches to the room with the given roomId.
+Switches to the room with the given roomId. You can find a room's ID by accessing "Rooms.roomName".
 
 ---
 
@@ -49,7 +49,7 @@ playSound(soundId, repeat, [volume], [pan], [pitch])
 Plays a sound and returns a SoundPlayback instance, which can be used to control this specific sound instance.
 
 Arguments:
-- soundId — sound resource  
+- soundId — sound ID. Can be found by accessing "Sounds.soundName"
 - repeat — loop (true/false)  
 - volume (optional) — default 1.0  
 - pan (optional) — default 0  
@@ -118,7 +118,7 @@ Draws text at the given position.
 ---
 
 drawPath(x, y, pathId, col, width)
-Draws a path as a sequence of connected lines.
+Draws a path as a sequence of connected lines. You can find path's ID by accessing "Paths.pathName".
 
 ---
 
