@@ -1,0 +1,121 @@
+Global Functions
+
+Global functions are available everywhere in your game code.  
+They control room transitions, sound playback, drawing, input, and view/viewport information.
+
+---
+
+Room Control
+
+goToNextRoom()
+Switches to the next room in the room order.
+
+---
+
+goToRoom(roomId)
+Switches to the room with the given roomId.
+
+---
+
+restartRoom()
+Restarts the current room from the beginning.
+
+---
+
+Sound Functions
+
+playSound(soundId, repeat, [volume], [pan], [pitch])
+Plays a sound and returns a SoundPlayback instance, which can be used to control this specific sound instance.
+
+Arguments:
+- soundId — sound resource  
+- repeat — loop (true/false)  
+- volume (optional) — default 1.0  
+- pan (optional) — default 0  
+- pitch (optional) — default 0
+
+Returns:  
+A SoundPlayback instance.
+
+---
+
+pauseAllSounds()
+Pauses all currently playing sounds.
+
+---
+
+resumeAllSounds()
+Resumes all paused sounds.
+
+---
+
+Room Size
+
+getRoomWidth()
+Returns the width of the current room in pixels.
+
+---
+
+getRoomHeight()
+Returns the height of the current room in pixels.
+
+---
+
+View Functions
+
+getViewX(viewIndex)
+Returns the view’s X position in the room.
+
+getViewY(viewIndex)
+Returns the view’s Y position in the room.
+
+getViewWidth(viewIndex)
+Returns the width of the view in room coordinates.
+
+getViewHeight(viewIndex)
+Returns the height of the view in room coordinates.
+
+getViewPortX(viewIndex)
+Returns the X position of the view’s viewport on the screen.
+
+getViewPortY(viewIndex)
+Returns the Y position of the view’s viewport on the screen.
+
+getViewPortWidth(viewIndex)
+Returns the width of the viewport on the screen.
+
+getViewPortHeight(viewIndex)
+Returns the height of the viewport on the screen.
+
+---
+
+Drawing Functions
+
+drawText(x, y, text)
+Draws text at the given position.
+
+---
+
+drawPath(x, y, pathId, col, width)
+Draws a path as a sequence of connected lines.
+
+---
+
+drawLine(x1, y1, x2, y2, col, width)
+Draws a straight line between two points.
+
+---
+
+Input Functions
+
+keyDown(key)
+Returns true if the given keyboard key is currently held down.  
+Returns false otherwise.
+
+---
+
+mouseButtonDown(mb)
+Returns true if the given mouse button is currently held down.  
+Returns false otherwise.
+
+---
