@@ -37,7 +37,7 @@ You can access the path ID by "Paths.pathName", e.g. "startPath(Paths.PathGuardP
 
 stopPath() - stops the currently activated path.
 
-placeMeeting(x, y, objectTypeOrInstance) — returns true if moving to (x, y) would collide with the given object or instance(imageAngle is took in account).  
+placeMeeting(x, y, objectTypeOrInstance) — returns true if moving to (x, y) would collide with the given object or instance(imageAngle is taken into account).  
 
 instanceMeeting(x, y, objectType) — returns the first instance of the given object type at (x, y), or null if none exists.  
 
