@@ -1,0 +1,2 @@
+/// init
+imageSpeed = 20
