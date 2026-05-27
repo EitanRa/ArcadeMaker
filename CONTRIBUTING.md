@@ -20,7 +20,7 @@ git clone https://github.com/YOUR-USERNAME/YOUR-REPOSITORY-NAME.git
 ### 3. Create a Feature Branch
 Never work directly on the master branch. Create a new, descriptively named branch for your changes:
 git checkout -b feature/your-feature-name
-# OR for bug fixes:
+OR for bug fixes:
 git checkout -b fix/bug-description
 
 ### 4. Make Your Changes & Commit
@@ -51,3 +51,5 @@ git push origin feature/your-feature-name
 ## ❓ Need Help?
 
 If you have any questions, feel free to open an **Issue** on GitHub, and we can discuss it there!
+
+*This contribution file was written by an LLM
