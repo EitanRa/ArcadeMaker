@@ -23,6 +23,7 @@ using System.Reflection;
 using MonoGame.Extended;
 using MonoGame.Extended.ViewportAdapters;
 using System.Runtime.CompilerServices;
+using System.IO;
 
 namespace ArcadeMaker.Engines.MonoGame.Core
 {
@@ -30,7 +31,7 @@ namespace ArcadeMaker.Engines.MonoGame.Core
     /// The main class for the game, responsible for managing game components, settings, 
     /// and platform-specific configurations.
     /// </summary>
-    public partial class ArcadeMakerMonoGame : Game, IGame
+    public sealed partial class ArcadeMakerMonoGame : Game, IGame
     {
         public event EventHandler<RuntimeException>? OnExpRuntimeError;
         public event EventHandler<Exception>? OnCsError;
@@ -42,7 +43,7 @@ namespace ArcadeMaker.Engines.MonoGame.Core
         private Dictionary<Background, Texture2D?> BackgroundTextures { get; } = [];
         public List<Background> Backgrounds { get; } = [];
         public List<Sound> Sounds { get; } = [];
-        public List<Path> Paths { get; } = [];
+        public List<ArcadeMaker.Core.Resources.Path> Paths { get; } = [];
         public List<ObjectModel> Objects { get; } = [];
         public List<GameFont> FontsData { get; } = [];
         public List<ScriptDocument> Scripts { get; } = [];
@@ -76,8 +77,10 @@ namespace ArcadeMaker.Engines.MonoGame.Core
         public TextureAtlasMap MainTextureAtlasMap { get; set; }
         public TextureAtlas MainTextureAtlas { get; private set; }
 
+        public StringWriter Debug { get; } = new StringWriter();
+
         // runtime private data
-        private GameRunner GameRunner { get; set; }
+        private GameRunner<ArcadeMakerMonoGame> GameRunner { get; set; }
 
         /// <summary>
         /// Indicates if the game is running on a mobile platform.
@@ -136,7 +139,7 @@ namespace ArcadeMaker.Engines.MonoGame.Core
 
             Try(() =>
             {
-                GameRunner = new GameRunner(this);
+                GameRunner = new GameRunner<ArcadeMakerMonoGame>(this);
                 GameRunner.Run(invokeInit: false);
             });
         }
@@ -365,11 +368,8 @@ namespace ArcadeMaker.Engines.MonoGame.Core
             Window.Title = caption;
         }
 
-        public Exp.Void ShowMessage(Exp.Instance? _, IValue[] args)
+        public Exp.Void ShowMessage(Exp.Instance? _, IValue?[] args)
         {
-            if (args == null || args.Length != 1)
-                throw new ArgumentException("A single argument of type instance was expected.");
-
             MessageBox.Show("Message", ("".ToExpString() + args[0]?.Object?.ToString()).ToString(), ["OK"]);
             return Exp.Void.Return;
         }

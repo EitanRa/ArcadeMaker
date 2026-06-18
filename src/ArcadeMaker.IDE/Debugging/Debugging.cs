@@ -12,7 +12,7 @@ namespace ArcadeMaker.IDE.Debugging;
 
 internal static class Debug
 {
-    internal static GameRunner? GameRunner { get; private set; }
+    internal static GameRunner<FutileGame>? GameRunner { get; private set; }
     internal static bool TryBuild(out HashSet<ExpError> errors)
     {
         HashSet<ExpError> _errors = [];

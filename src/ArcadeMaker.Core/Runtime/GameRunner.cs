@@ -11,12 +11,12 @@ using ArcadeMaker.Core.ExpSrc;
 
 namespace ArcadeMaker.Core.Runtime
 {
-    public class GameRunner
+    public sealed class GameRunner<TGame> where TGame : IGame // we COULD use a non-generic class, but this approach allows the JIT to optimize the code by skipping the vtable lookup for the IGame interface, which is a bit faster. it's also important to mark the classes that implement IGame as 'sealed' (not sure if this comment is actually true...).
     {
-        public IGame Game { get; }
+        public TGame Game { get; }
         public Interpreter Interpreter { get; }
 
-        public GameRunner(IGame game)
+        public GameRunner(TGame game)
         {
             ArgumentNullException.ThrowIfNull(game);
 

@@ -15,6 +15,14 @@ namespace ArcadeMaker.Core;
 
 public partial interface IGame
 {
+    [ExpFunc(1, CustomName = "debug")]
+    Exp.Void DebugLog(Exp.Instance? _, IValue?[] args)
+    {
+        Debug.WriteLine("".ToExpString() + (args[0]?.ToString() ?? "NULL"));
+
+        return Exp.Void.Return;
+    }
+
     [ExpFunc(1)]
     BoolValue KeyDown(Exp.Instance? _, IValue?[] args);
 

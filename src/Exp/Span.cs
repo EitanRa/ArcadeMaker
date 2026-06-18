@@ -729,7 +729,7 @@ public interface IVarSystem
     internal List<Variable> Vars { get; }
     internal IVarSystem Parent { get; set; }
 
-    internal IEnumerable<IValue> BackupValues() => Vars.Map(v => v.Value.Pass());
+    internal IEnumerable<IValue> BackupValues() => Vars.Map(v => v.Value);
     internal void RestoreValues(IEnumerable<IValue> values)
     {
         int i = 0;
