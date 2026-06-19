@@ -101,7 +101,7 @@ namespace ArcadeMaker.IDE
             addEventBtn.Location = new Point(275, 329);
             addEventBtn.Margin = new Padding(4, 3, 4, 3);
             addEventBtn.Name = "addEventBtn";
-            addEventBtn.Size = new Size(140, 27);
+            addEventBtn.Size = new Size(211, 27);
             addEventBtn.TabIndex = 8;
             addEventBtn.Text = "Add Event";
             addEventBtn.UseVisualStyleBackColor = true;
@@ -110,10 +110,10 @@ namespace ArcadeMaker.IDE
             // changeEventBtn
             // 
             changeEventBtn.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            changeEventBtn.Location = new Point(350, 362);
+            changeEventBtn.Location = new Point(386, 362);
             changeEventBtn.Margin = new Padding(4, 3, 4, 3);
             changeEventBtn.Name = "changeEventBtn";
-            changeEventBtn.Size = new Size(65, 27);
+            changeEventBtn.Size = new Size(100, 27);
             changeEventBtn.TabIndex = 9;
             changeEventBtn.Text = "Change";
             changeEventBtn.UseVisualStyleBackColor = true;
@@ -158,7 +158,7 @@ namespace ArcadeMaker.IDE
             deleteEventBtn.Location = new Point(274, 362);
             deleteEventBtn.Margin = new Padding(4, 3, 4, 3);
             deleteEventBtn.Name = "deleteEventBtn";
-            deleteEventBtn.Size = new Size(68, 27);
+            deleteEventBtn.Size = new Size(104, 27);
             deleteEventBtn.TabIndex = 18;
             deleteEventBtn.Text = "Delete";
             deleteEventBtn.UseVisualStyleBackColor = true;
@@ -204,7 +204,7 @@ namespace ArcadeMaker.IDE
             eventsListView.Location = new Point(276, 7);
             eventsListView.Margin = new Padding(4, 3, 4, 3);
             eventsListView.Name = "eventsListView";
-            eventsListView.Size = new Size(139, 316);
+            eventsListView.Size = new Size(210, 316);
             eventsListView.TabIndex = 25;
             eventsListView.SelectedIndexChanged += eventsListView_SelectedIndexChanged;
             // 
@@ -240,10 +240,10 @@ namespace ArcadeMaker.IDE
             scriptsListView.DrawMode = DrawMode.OwnerDrawFixed;
             scriptsListView.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 177);
             scriptsListView.FormattingEnabled = true;
-            scriptsListView.Location = new Point(423, 7);
+            scriptsListView.Location = new Point(494, 7);
             scriptsListView.Margin = new Padding(4, 3, 4, 3);
             scriptsListView.Name = "scriptsListView";
-            scriptsListView.Size = new Size(234, 308);
+            scriptsListView.Size = new Size(163, 308);
             scriptsListView.TabIndex = 27;
             scriptsListView.DrawItem += scriptsListView_DrawItem;
             scriptsListView.SelectedIndexChanged += scriptsListView_SelectedIndexChanged;
@@ -252,9 +252,9 @@ namespace ArcadeMaker.IDE
             // addScriptBtn
             // 
             addScriptBtn.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            addScriptBtn.Location = new Point(423, 329);
+            addScriptBtn.Location = new Point(494, 329);
             addScriptBtn.Name = "addScriptBtn";
-            addScriptBtn.Size = new Size(234, 27);
+            addScriptBtn.Size = new Size(163, 27);
             addScriptBtn.TabIndex = 28;
             addScriptBtn.Text = "Add Script To Selected Event";
             addScriptBtn.UseVisualStyleBackColor = true;
@@ -263,9 +263,9 @@ namespace ArcadeMaker.IDE
             // deleteScriptBtn
             // 
             deleteScriptBtn.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            deleteScriptBtn.Location = new Point(422, 362);
+            deleteScriptBtn.Location = new Point(493, 362);
             deleteScriptBtn.Name = "deleteScriptBtn";
-            deleteScriptBtn.Size = new Size(234, 27);
+            deleteScriptBtn.Size = new Size(163, 27);
             deleteScriptBtn.TabIndex = 29;
             deleteScriptBtn.Text = "Delete Script";
             deleteScriptBtn.UseVisualStyleBackColor = true;

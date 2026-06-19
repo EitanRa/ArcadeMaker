@@ -19,6 +19,7 @@ using ArcadeMaker.Core.Resources.Serializeables;
 using GameFont = ArcadeMaker.IDE.Items.GameFont;
 using PathPoint = ArcadeMaker.IDE.Items.PathPoint;
 using RoomBackground = ArcadeMaker.IDE.Items.RoomBackground;
+using ArcadeMaker.Core.Models;
 
 namespace ArcadeMaker.IDE
 {
@@ -214,20 +215,20 @@ namespace ArcadeMaker.IDE
             foreach (GameObject obj in objects)
             {
                 // save script files
-                foreach (EventScripts evscripts in obj.EventScripts)
+                foreach (Core.Models.ObjectEvent evscripts in obj.Events)
                 {
                     int i = 0;
-                    foreach (EventScript script in evscripts.Scripts)
+                    foreach (string script in evscripts.Scripts)
                     {
-                        string p = path + @"\" + obj.name + "." + evscripts.Event + (i++) + ".cs";
-                        SaveTextFile(p, script.Script);
+                        string p = path + @"\" + obj.name + "." + evscripts.Type + (evscripts.GetParam(out var param) ? "_" + param : "") + (i++) + ".cs";
+                        SaveTextFile(p, script);
                     }
                 }
 
                 // create serializeable
                 string spr = obj.sprite == null ? "" : obj.sprite.name;
                 var sobj = new SerializeableGameObject { name = obj.name, sprite = spr, solid = obj.solid, depth = obj.depth, parent = obj.parent?.name };
-                sobj.events = [..obj.EventScripts];
+                sobj.events = [..obj.Events];
                 sobj.extraProperties = [.. obj.ExtraProperties.Map(ep => new ArcadeMaker.Core.Resources.Serializeables.ObjectProperty { Name = ep.Name, Constant = ep.Constant, InitValueCode = ep.InitValueCode, Nullable = ep.Nullable, Private = ep.Private, Type = ep.Type })];
                 sitems.Add(sobj);
             }
@@ -243,7 +244,7 @@ namespace ArcadeMaker.IDE
                         robjs[i].creationCode = room.objects[i].Script;
                 }
                 List<SerializeableRoomView> views = new List<SerializeableRoomView>();
-                foreach (RoomView view in room.views)
+                foreach (var view in room.views)
                 {
                     views.Add(new SerializeableRoomView
                     {
@@ -401,7 +402,7 @@ namespace ArcadeMaker.IDE
                     typeof(Point),
                     typeof(PathPoint),
                     typeof(ObjectEvent),
-                    typeof(EventScripts),
+                    typeof(ParameterizedObjectEvent<>),
                     typeof(EventScript),
                     typeof(AssemblyReference),
                     typeof(IDEObjectProperty),
@@ -553,7 +554,7 @@ namespace ArcadeMaker.IDE
                             //        script.Script = ReadTextFile(projectFileLocation + @"\" + obj.name + "." + evscripts.Event + (i++) + ".cs");
 
                             //}
-                            obj.EventScripts.AddRange(sobj.events);
+                            obj.Events.AddRange(sobj.events);
                         }
                         catch
                         {
@@ -595,7 +596,7 @@ namespace ArcadeMaker.IDE
                         if (sroom.views != null)
                         {
                             room.views.Clear();
-                            List<RoomView> views = new List<RoomView>();
+                            List<IDE.Items.RoomView> views = [];
                             foreach (SerializeableRoomView sview in sroom.views)
                             {
                                 GameObject followObj = null;
@@ -604,7 +605,7 @@ namespace ArcadeMaker.IDE
                                     if (obj.name == sview.objFollow)
                                         followObj = obj;
                                 }
-                                views.Add(new RoomView
+                                views.Add(new()
                                 {
                                     Visible = sview.visible,
                                     X = sview.x,
@@ -623,7 +624,7 @@ namespace ArcadeMaker.IDE
                                 });
                             }
                             while (views.Count < GameRoom.minNumOfViews)
-                                views.Add(new RoomView());
+                                views.Add(new());
                             room.views.AddRange(views);
                         }
 
@@ -814,7 +815,7 @@ namespace ArcadeMaker.IDE
         public bool solid;
         public int depth;
         public string parent;
-        public EventScripts[] events;
+        public Core.Models.ObjectEvent[] events;
         public ArcadeMaker.Core.Resources.Serializeables.ObjectProperty[] extraProperties;
     }
 

@@ -122,30 +122,31 @@ public partial interface IGame
                 else if (item is SerializeableGameObject sobj)
                 {
                     // load event scripts
-                    List<InstanceScriptDocument> createEv = [], stepEv = [], drawEv = [];
-                    foreach (var evscripts in sobj.events)
-                    {
-                        //string createEvScript = File.ReadAllText($"{projectFileLocation}\\{sobj.name}.Create.cs");
-                        //string stepEvScript = File.ReadAllText($"{projectFileLocation}\\{sobj.name}.Step.cs");
-                        //string drawEvScript = File.ReadAllText($"{projectFileLocation}\\{sobj.name}.Draw.cs");
-                        List<InstanceScriptDocument> list = evscripts.Event switch
-                        {
-                            ObjectEvent.Create => createEv,
-                            ObjectEvent.Step => stepEv,
-                            ObjectEvent.Draw => drawEv,
-                            _ => throw new Exception("Unsupported event type.")
-                        };
-                        evscripts.Scripts.ForEach(script => { if (!string.IsNullOrWhiteSpace(script.Script)) list.Add(ExpSrc.ExpSrc.CreateInstanceScriptDocument($"{evscripts.Event} event of {sobj.name}", null, script.Script, evscripts.Event == ObjectEvent.Draw ? [ExpSrc.ExpSrc.CURRENT_VIEW_INDEX_ARG_NAME] : [])); });
-                    }
+                    //List<InstanceScriptDocument> createEv = [], stepEv = [], drawEv = [];
+                    //foreach (var evscripts in sobj.events)
+                    //{
+                    //    //string createEvScript = File.ReadAllText($"{projectFileLocation}\\{sobj.name}.Create.cs");
+                    //    //string stepEvScript = File.ReadAllText($"{projectFileLocation}\\{sobj.name}.Step.cs");
+                    //    //string drawEvScript = File.ReadAllText($"{projectFileLocation}\\{sobj.name}.Draw.cs");
+                    //    List<InstanceScriptDocument> list = evscripts.Type switch
+                    //    {
+                    //        ObjectEvent.EventType.Create => createEv,
+                    //        ObjectEvent.EventType.Step => stepEv,
+                    //        ObjectEvent.EventType.Draw => drawEv,
+                    //        _ => throw new NotImplementedException($"Unsupported event type: {evscripts.Type}.")
+                    //    };
+                    //    evscripts.Scripts.ForEach(script => { if (!string.IsNullOrWhiteSpace(script.Script)) list.Add(ExpSrc.ExpSrc.CreateInstanceScriptDocument($"{evscripts.Type} event of {sobj.name}", null, script.Script, evscripts.Type == ObjectEvent.EventType.Draw ? [ExpSrc.ExpSrc.CURRENT_VIEW_INDEX_ARG_NAME] : [])); });
+                    //}
 
-                    ObjectModel obj = new(sobj.name, Sprites.FirstOrDefault(spr => spr.Name == sobj.sprite), new([.. createEv], [.. stepEv], [.. drawEv]), sobj.extraProperties)
+                    ObjectModel obj = new(sobj.name, Sprites.FirstOrDefault(spr => spr.Name == sobj.sprite), sobj.events, sobj.extraProperties)
                     {
                         InitValues = (Depth: sobj.depth, Visible: true, Solid: sobj.solid)
                     };
 
-                    createEv.ForEach(doc => doc.Def = obj.Class);
-                    stepEv.ForEach(doc => doc.Def = obj.Class);
-                    drawEv.ForEach(doc => doc.Def = obj.Class);
+                    // set the def class of the documents (now done at ObjectModel class)
+                    //createEv.ForEach(doc => doc.Def = obj.Class);
+                    //stepEv.ForEach(doc => doc.Def = obj.Class);
+                    //drawEv.ForEach(doc => doc.Def = obj.Class);
 
                     Objects.Add(obj);
                 }
@@ -238,7 +239,8 @@ public partial interface IGame
                     typeof(Point),
                     typeof(PathPoint),
                     typeof(ObjectEvent),
-                    typeof(EventScripts),
+                    typeof(ObjectEvent),
+                    typeof(ParameterizedObjectEvent<>),
                     typeof(EventScript),
                     typeof(AssemblyReference),
                     typeof(ObjectProperty),

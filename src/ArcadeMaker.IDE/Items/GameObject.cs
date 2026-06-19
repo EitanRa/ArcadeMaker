@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ArcadeMaker.Core.Resources.Serializeables;
+using ArcadeMaker.Core.Models;
 using ArcadeMaker.IDE.Editors.Object.ObjectProperties;
 using Exp;
 
@@ -15,7 +16,7 @@ namespace ArcadeMaker.IDE.Items
         public static System.Drawing.Bitmap icon { get; } = Properties.Resources.object32;
 
         public List<IDEObjectProperty> ExtraProperties { get; } = [];
-        public List<EventScripts> EventScripts { get; } = [];
+        public List<ObjectEvent> Events { get; } = [];
 
         public bool CompiledSyntaxTree { get; set; } = false;
 
@@ -81,9 +82,9 @@ namespace ArcadeMaker.IDE.Items
         public int depth;
         public GameObject parent;
 
-        internal EventScripts? GetEventScripts(ObjectEvent ev)
-        {
-            return EventScripts.FirstOrDefault(es => es.Event == ev);
-        }
+        //internal EventScripts? GetEventScripts(ObjectEvent ev)
+        //{
+        //    return Events.FirstOrDefault(es => es.Event == ev);
+        //}
     }
 }

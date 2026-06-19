@@ -49,7 +49,7 @@ namespace ArcadeMaker.Core.Runtime
                 InstanceScriptDocument initializerDoc = new(model.Name + ".PropertiesInitializer", model.Class, initializerScript);
                 initializerDoc.TryPrepare(Interpreter, out var errors);
                 InitializersErrors.AddRange(errors);
-                model.EventScripts.Create.Insert(0, initializerDoc);
+                model.GetEvent(ObjectEvent.EventType.Create).InsertDoc(0, initializerDoc);
             }
 
             if (InitializersErrors.Count > 0)
@@ -193,8 +193,8 @@ namespace ArcadeMaker.Core.Runtime
             for (int i = 0; i < roominsts.Count; i++) // if we use foreach here, modifications to the list of instances (like destroying an instance and removing it from the list) will cause an exception, but with this for loop it won't
             {
                 var instance = roominsts[i];
-                if (instance.Model.EventScripts.Step != null)
-                    foreach (var script in instance.Model.EventScripts.Step)
+                if (instance.Model.StepEvent != null)
+                    foreach (var script in instance.Model.StepEvent.Docs!)
                         script.Run(Interpreter, instance);
 
                 // move path
@@ -258,8 +258,8 @@ namespace ArcadeMaker.Core.Runtime
             // run all draw events for the current room
             foreach (var instance in Game.GetActivatedRoom().SortedInstances)
             {
-                if (instance.Model.EventScripts.Draw?.Length >= 1)
-                    foreach (var script in instance.Model.EventScripts.Draw)
+                if (instance.Model.DrawEvent?.Docs!.Count >= 1)
+                    foreach (var script in instance.Model.DrawEvent.Docs!)
                         script.Run(Interpreter, instance, Game.CurrentViewIndex.ToExp());
                 else
                     Game.DrawInstance(instance);
@@ -306,7 +306,7 @@ namespace ArcadeMaker.Core.Runtime
             // run all create events for the new room
             foreach (var instance in room.Instances)
             {
-                foreach (var script in instance.Model.EventScripts.Create)
+                foreach (var script in instance.Model.CreateEvent?.Docs!)
                     script.Run(Interpreter, instance);
             }
         }

@@ -14,6 +14,7 @@ using ArcadeMaker.IDE.Editors.Object.ObjectProperties;
 using ArcadeMaker.IDE.Items;
 using Exp;
 using ArcadeMaker.Core.Resources.Serializeables;
+using ArcadeMaker.Core.Models;
 
 namespace ArcadeMaker.IDE
 {
@@ -74,10 +75,9 @@ namespace ArcadeMaker.IDE
         private void ObjectEditor_Load(object sender, EventArgs e)
         {
             PropertiesModifier.Init(obj);
-            foreach (EventScripts ev in obj.EventScripts)
+            foreach (var ev in obj.Events)
             {
-                var item = ev.Event;
-                eventsListView.Items.Add(item);
+                eventsListView.Items.Add(ev);
             }
             solidBox.Checked = obj.solid;
             depthBox.Value = obj.depth;
@@ -87,15 +87,16 @@ namespace ArcadeMaker.IDE
             };
             SelectEventDialog.EventSelected += (s, ea) =>
             {
-                if (!obj.EventScripts.Any(sc => sc.Event == ea))
+                // if an event with the same type [and param] already exists, select it instead of adding a new one
+                ObjectEvent? existing = obj.Events.FirstOrDefault(e => e.Type == ea.Type && e.GetParam(out var existingParam) == ea.GetParam(out var newParam) && object.Equals(existingParam, newParam));
+                if (existing == null)
                 {
-                    var evscripts = new EventScripts(ea, []);
-                    obj.EventScripts.Add(evscripts);
+                    obj.Events.Add(ea);
                     eventsListView.Items.Add(ea);
                 }
                 else
                 {
-                    eventsListView.SelectedItem = ea;
+                    eventsListView.SelectedItem = existing;
                 }
             };
             LoadSpriteBox();
@@ -180,10 +181,9 @@ namespace ArcadeMaker.IDE
             try
             {
                 var item = eventsListView.SelectedItems[0];
-                ObjectEvent ev = (ObjectEvent)item;
-                if (obj.EventScripts.FirstOrDefault(evs => evs.Event == ev) is EventScripts evscripts)
-                    obj.EventScripts.Remove(evscripts);
-                eventsListView.Items.Remove(item);
+                ObjectEvent ev = (ObjectEvent)item!;
+                obj.Events.Remove(ev);
+                eventsListView.Items.Remove(item!);
             }
             catch (Exception ex)
             {
@@ -256,9 +256,8 @@ namespace ArcadeMaker.IDE
                 return;
             }
 
-            EventScript script = new("");
-            obj.EventScripts.FirstOrDefault(es => es.Event == ev)?.Scripts.Add(script);
-            scriptsListView.Items.Add(script);
+            ev.Scripts.Add("");
+            scriptsListView.Items.Add(new EventScript(ev, ev.Scripts.Count - 1));
         }
 
         private void eventsListView_SelectedIndexChanged(object sender, EventArgs e)
@@ -275,21 +274,27 @@ namespace ArcadeMaker.IDE
                 return;
 
             // load the scripts of the event to the scripts view
-            scriptsListView.Items.AddRange(obj.EventScripts.FirstOrDefault(es => es.Event == ev)?.Scripts.ToArray() ?? []);
+            int i = 0;
+            foreach (var script in ev.Scripts)
+            {
+                scriptsListView.Items.Add(new EventScript(ev, i++));
+            }
         }
 
         private void scriptsListView_DoubleClick(object sender, EventArgs e)
         {
+            ObjectEvent ev = eventsListView.SelectedItem as ObjectEvent ?? throw new Exception("No event is selected.");
+            int scriptIndex = scriptsListView.SelectedIndex;
+
             if (scriptsListView.SelectedItem is not EventScript script)
                 return;
 
-            ScriptEditor editor = new(script);
-            editor.Owner = this;
+            ScriptEditor editor = new(script) { Owner = this };
 
             editor.OKClicked += (s, e) =>
             {
-                script.Script = e;
-                scriptsListView.Update(); // to update script desc
+                script.Script = e; // updates in the event itself
+                scriptsListView.Refresh(); // to update script desc
             };
 
             editor.ShowDialog();
@@ -297,19 +302,16 @@ namespace ArcadeMaker.IDE
 
         private void deleteScriptBtn_Click(object sender, EventArgs e)
         {
-            if (eventsListView.SelectedItem is not ObjectEvent ev)
-                return;
-
             if (scriptsListView.SelectedItem is not EventScript script)
                 return;
 
-            obj.EventScripts.FirstOrDefault(ess => ess.Event == ev)?.Scripts.Remove(script);
+            script.Event.Scripts.RemoveAt(script.ScriptIndex);
             scriptsListView.Items.Remove(script);
         }
 
         private void scriptsListView_SelectedIndexChanged(object sender, EventArgs e)
         {
-            scriptsListView.Invalidate();
+            scriptsListView.Refresh();
         }
 
         private void scriptsListView_DrawItem(object sender, DrawItemEventArgs e)

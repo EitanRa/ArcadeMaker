@@ -40,17 +40,22 @@ internal static class Debug
             }
 
             var futileGame = new FutileGame();
-            futileGame.Objects.AddRange(Environment.project.items.OfType<GameObject>().Select(go => new ObjectModel(go.name, null, new(
-                go.GetEventScripts(ObjectEvent.Create)?.Scripts.Select((script, i) => ExpSrc.CreateInstanceScriptDocument($"{go.name}.Events.Create.{i + 1}", null!, script.Script)).ToArray(),
-                go.GetEventScripts(ObjectEvent.Step)?.Scripts.Select((script, i) => ExpSrc.CreateInstanceScriptDocument($"{go.name}.Events.Step.{i + 1}", null!, script.Script)).ToArray(),
-                go.GetEventScripts(ObjectEvent.Draw)?.Scripts.Select((script, i) => ExpSrc.CreateInstanceScriptDocument($"{go.name}.Events.Draw.{i + 1}", null!, script.Script, ExpSrc.CURRENT_VIEW_INDEX_ARG_NAME)).ToArray()
-            ), [.. go.ExtraProperties])));
-            futileGame.Objects.ForEach(model =>
-            {
-                model.EventScripts.Create?.ForEach(script => script?.Def = model.Class);
-                model.EventScripts.Step?.ForEach(script => script?.Def = model.Class);
-                model.EventScripts.Draw?.ForEach(script => script?.Def = model.Class);
-            });
+            futileGame.Objects.AddRange(Environment.project.items.OfType<GameObject>().Select(go => new ObjectModel(go.name, null,
+                //new(
+                //go.GetEventScripts(ObjectEvent.Create)?.Scripts.Select((script, i) => ExpSrc.CreateInstanceScriptDocument($"{go.name}.Events.Create.{i + 1}", null!, script.Script)).ToArray(),
+                //go.GetEventScripts(ObjectEvent.Step)?.Scripts.Select((script, i) => ExpSrc.CreateInstanceScriptDocument($"{go.name}.Events.Step.{i + 1}", null!, script.Script)).ToArray(),
+                //go.GetEventScripts(ObjectEvent.Draw)?.Scripts.Select((script, i) => ExpSrc.CreateInstanceScriptDocument($"{go.name}.Events.Draw.{i + 1}", null!, script.Script, ExpSrc.CURRENT_VIEW_INDEX_ARG_NAME)).ToArray()
+                //)
+                [..go.Events]
+                , [.. go.ExtraProperties])));
+
+            // (now done at ObjectModel ctor):
+            //futileGame.Objects.ForEach(model =>
+            //{
+            //    model.Events.Create?.ForEach(script => script?.Def = model.Class);
+            //    model.Events.Step?.ForEach(script => script?.Def = model.Class);
+            //    model.Events.Draw?.ForEach(script => script?.Def = model.Class);
+            //});
             futileGame.Sprites.AddRange(Environment.project.items.OfType<GameSprite>().Map(s => new Core.Resources.Sprite(s.name, null, 0, 0, 0, null)));
             futileGame.FontsData.AddRange(Environment.project.items.OfType<GameFont>().Map(r => new Core.Resources.Serializeables.GameFont() { Name = r.name }));
             futileGame.Sounds.AddRange(Environment.project.items.OfType<GameSound>().Map(s => new Core.Resources.Sound(s.name, "", 0, 0, 0, Core.Resources.Sound.Types.SoundEffect)));
@@ -61,12 +66,9 @@ internal static class Debug
             GameRunner = new(futileGame);
 
             // catch errors in event scripts
-            ExpError[]? createErrors = null, stepErrors = null, drawErrors = null;
             futileGame.Objects.ForEach(model =>
             {
-                model.EventScripts.Create?.ForEach(script => { script?.TryPrepare(GameRunner.Interpreter, out createErrors); CatchErrors(createErrors); });
-                model.EventScripts.Step?.ForEach(script => { script?.TryPrepare(GameRunner.Interpreter, out stepErrors); CatchErrors(stepErrors); });
-                model.EventScripts.Draw?.ForEach(script => { script?.TryPrepare(GameRunner.Interpreter, out drawErrors); CatchErrors(drawErrors); });
+                model.Events.ForEach(e => e.Docs?.ForEach(script => { ExpError[]? errors = null; script?.TryPrepare(GameRunner.Interpreter, out errors); CatchErrors(errors); }));
             });
 
             //Interpreter.Build(ScriptDocument.FromString("", "main.script"), defs, [..sources]);
