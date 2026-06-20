@@ -46,7 +46,7 @@ internal static class Debug
                 //go.GetEventScripts(ObjectEvent.Step)?.Scripts.Select((script, i) => ExpSrc.CreateInstanceScriptDocument($"{go.name}.Events.Step.{i + 1}", null!, script.Script)).ToArray(),
                 //go.GetEventScripts(ObjectEvent.Draw)?.Scripts.Select((script, i) => ExpSrc.CreateInstanceScriptDocument($"{go.name}.Events.Draw.{i + 1}", null!, script.Script, ExpSrc.CURRENT_VIEW_INDEX_ARG_NAME)).ToArray()
                 //)
-                [..go.Events]
+                [.. go.Events.Map(e => { e.Docs?.Clear(); return e; })] // clear the documents that were created on prev debug build
                 , [.. go.ExtraProperties])));
 
             // (now done at ObjectModel ctor):

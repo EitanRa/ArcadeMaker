@@ -1,25 +1,26 @@
-﻿using System;
+﻿using ArcadeMaker.Core.ExpSrc;
+using ArcadeMaker.Core.Models;
+//using ArcadeMaker.Core.Resources.Serializeables;
+using ArcadeMaker.Core.Resources;
+using ArcadeMaker.Core.Resources.Serializeables;
+using ArcadeMaker.IDE.Editors.Object.ObjectProperties;
+using ArcadeMaker.IDE.Items;
+using Exp;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.IO;
+using System.Windows.Forms;
 using System.Xml;
 using System.Xml.Serialization;
-using System.Drawing;
-using System.Windows.Forms;
-using ArcadeMaker.IDE.Editors.Object.ObjectProperties;
-//using ArcadeMaker.Core.Resources.Serializeables;
-using ArcadeMaker.Core.Resources;
-using IDEObjectProperty = ArcadeMaker.IDE.Editors.Object.ObjectProperties.IDEObjectProperty;
-using Exp;
-using ArcadeMaker.IDE.Items;
-using ArcadeMaker.Core.Resources.Serializeables;
 using GameFont = ArcadeMaker.IDE.Items.GameFont;
+using IDEObjectProperty = ArcadeMaker.IDE.Editors.Object.ObjectProperties.IDEObjectProperty;
 using PathPoint = ArcadeMaker.IDE.Items.PathPoint;
 using RoomBackground = ArcadeMaker.IDE.Items.RoomBackground;
-using ArcadeMaker.Core.Models;
 
 namespace ArcadeMaker.IDE
 {
@@ -402,8 +403,10 @@ namespace ArcadeMaker.IDE
                     typeof(Point),
                     typeof(PathPoint),
                     typeof(ObjectEvent),
-                    typeof(ParameterizedObjectEvent<>),
-                    typeof(EventScript),
+                    typeof(ParameterizedObjectEvent<Core.ExpSrc.Controls.Keys>),
+                    typeof(ParameterizedObjectEvent<Core.ExpSrc.Controls.MouseButton>),
+                    typeof(ParameterizedObjectEvent<Core.ExpSrc.Controls.GamepadButton>),
+                    //typeof(ParameterizedObjectEvent<Core.Models.ObjectModel>),
                     typeof(AssemblyReference),
                     typeof(IDEObjectProperty),
                     typeof(ArcadeMaker.Core.Resources.Serializeables.VariableType),

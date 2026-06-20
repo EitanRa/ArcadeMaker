@@ -17,6 +17,7 @@ using ArcadeMaker.Core.Math;
 using ArcadeMaker.Core.Math.Shapes;
 using Exp.Spans;
 using System.ComponentModel.DataAnnotations;
+using ArcadeMaker.Core.ExpSrc.Controls;
 
 namespace ArcadeMaker.Core;
 
@@ -239,9 +240,10 @@ public partial interface IGame
                     typeof(Point),
                     typeof(PathPoint),
                     typeof(ObjectEvent),
-                    typeof(ObjectEvent),
-                    typeof(ParameterizedObjectEvent<>),
-                    typeof(EventScript),
+                    typeof(ParameterizedObjectEvent<ExpSrc.Controls.Keys>),
+                    typeof(ParameterizedObjectEvent<ExpSrc.Controls.MouseButton>),
+                    typeof(ParameterizedObjectEvent<ExpSrc.Controls.GamepadButton>),
+                    //typeof(ParameterizedObjectEvent<ObjectModel>),
                     typeof(AssemblyReference),
                     typeof(ObjectProperty),
                     typeof(VariableType),

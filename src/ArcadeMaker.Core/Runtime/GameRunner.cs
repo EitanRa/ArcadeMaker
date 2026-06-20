@@ -49,7 +49,18 @@ namespace ArcadeMaker.Core.Runtime
                 InstanceScriptDocument initializerDoc = new(model.Name + ".PropertiesInitializer", model.Class, initializerScript);
                 initializerDoc.TryPrepare(Interpreter, out var errors);
                 InitializersErrors.AddRange(errors);
-                model.GetEvent(ObjectEvent.EventType.Create).InsertDoc(0, initializerDoc);
+
+                // if create event is not set, create it
+                var createEv = model.GetEvent(ObjectEvent.EventType.Create);
+                if (createEv == null)
+                {
+                    createEv = new(ObjectEvent.EventType.Create, []);
+                    createEv.CreateDocs(model.Class);
+                    model.Events.Add(createEv);
+                }
+
+                // insert the initializer doc to create event
+                createEv.InsertDoc(0, initializerDoc, false);
             }
 
             if (InitializersErrors.Count > 0)
@@ -193,6 +204,18 @@ namespace ArcadeMaker.Core.Runtime
             for (int i = 0; i < roominsts.Count; i++) // if we use foreach here, modifications to the list of instances (like destroying an instance and removing it from the list) will cause an exception, but with this for loop it won't
             {
                 var instance = roominsts[i];
+
+                // run other events that belong to step (like KeyDown)
+                // run KeyDown event
+                foreach (var keyDownEv in instance.Model.KeyDownEvents)
+                {
+                    if (Game.KeyDown(null, [((int)keyDownEv.Param).ToExp()]).Bool)
+                    {
+                        foreach (var script in keyDownEv.Docs ?? [])
+                            script.Run(Interpreter, instance);
+                    }
+                }
+
                 if (instance.Model.StepEvent != null)
                     foreach (var script in instance.Model.StepEvent.Docs!)
                         script.Run(Interpreter, instance);
@@ -306,8 +329,9 @@ namespace ArcadeMaker.Core.Runtime
             // run all create events for the new room
             foreach (var instance in room.Instances)
             {
-                foreach (var script in instance.Model.CreateEvent?.Docs!)
-                    script.Run(Interpreter, instance);
+                if (instance.Model.CreateEvent != null)
+                    foreach (var script in instance.Model.CreateEvent?.Docs!)
+                        script.Run(Interpreter, instance);
             }
         }
 
