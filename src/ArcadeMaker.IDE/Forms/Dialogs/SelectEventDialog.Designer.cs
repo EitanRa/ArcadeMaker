@@ -63,7 +63,9 @@ namespace ArcadeMaker.IDE
             // 
             // keyUpBtn
             // 
-            keyUpBtn.Location = new Point(14, 128);
+            keyUpBtn.Image = Properties.Resources.evicon24_KeyRelease;
+            keyUpBtn.ImageAlign = ContentAlignment.MiddleLeft;
+            keyUpBtn.Location = new Point(13, 166);
             keyUpBtn.Margin = new Padding(4, 3, 4, 3);
             keyUpBtn.Name = "keyUpBtn";
             keyUpBtn.Size = new Size(157, 32);
@@ -148,7 +150,9 @@ namespace ArcadeMaker.IDE
             // 
             // keyPressBtn
             // 
-            keyPressBtn.Location = new Point(15, 166);
+            keyPressBtn.Image = Properties.Resources.evicon24_KeyPress;
+            keyPressBtn.ImageAlign = ContentAlignment.MiddleLeft;
+            keyPressBtn.Location = new Point(13, 128);
             keyPressBtn.Margin = new Padding(4, 3, 4, 3);
             keyPressBtn.Name = "keyPressBtn";
             keyPressBtn.Size = new Size(157, 32);

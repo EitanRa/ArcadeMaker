@@ -15,6 +15,7 @@ using ArcadeMaker.IDE.Items;
 using Exp;
 using ArcadeMaker.Core.Resources.Serializeables;
 using ArcadeMaker.Core.Models;
+using ArcadeMaker.IDE.Properties;
 
 namespace ArcadeMaker.IDE
 {
@@ -335,6 +336,73 @@ namespace ArcadeMaker.IDE
 
             // draw the item text
             e.Graphics.DrawString(item?.ToString(), font, selected ? Brushes.White : Brushes.Black, new PointF(30, e.Bounds.Y));
+        }
+
+        private void eventsListView_DrawItem(object sender, DrawItemEventArgs e)
+        {
+            // Draw the background highlights (selection color)
+            e.DrawBackground();
+
+            // Get the current item object
+            var item = eventsListView.Items[e.Index];
+
+            // Get the icon
+            Image? icon = GetIcon(item as ObjectEvent);
+
+            // Get second icon (for Collision events - we display both the Collision event icon and the object associated to it)
+            Image? icon2 = item is CollisionEvent ev ? Environment.project.items.OfType<GameObject>().FirstOrDefault(obj => obj.name == ev.Param)?.sprite?.image : null;
+
+            if (icon != null && icon2 != null)
+            {
+                try
+                {
+                    Bitmap bundle = new(icon.Width * 2, icon.Height);
+                    using Graphics bg = Graphics.FromImage(bundle);
+                    bg.DrawImage(icon, 0, 0);
+                    bg.DrawImage(icon2, icon.Width, 0, icon.Width - 1, icon.Height - 1);
+                    icon = bundle;
+                }
+                catch (Exception ex)
+                {
+                    _ = ex; // it's OK, it'll draw the first icon alone
+                }
+            }
+
+            // Calculate vertical alignment positions
+            int iconX = e.Bounds.Left + 4;
+            int iconY = e.Bounds.Top + (e.Bounds.Height - (icon?.Height ?? 0)) / 2;
+
+            // 1. Draw the icons
+            if (icon != null)
+                e.Graphics.DrawImage(icon, iconX, iconY, icon.Width, icon.Height);
+
+            // 2. Calculate text boundaries (shifting right to prevent overlapping the icon)
+            int textX = iconX + (icon?.Width ?? 24) + 6;
+            Rectangle textRect = new Rectangle(textX, e.Bounds.Top, e.Bounds.Width - textX, e.Bounds.Height);
+
+            // 3. Draw the item text natively
+            TextRenderer.DrawText(e.Graphics, item?.ToString() ?? "null", e.Font, textRect, e.ForeColor,
+                                  TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
+
+            // Draw the focus boundary lines if active
+            e.DrawFocusRectangle();
+        }
+
+        private Image? GetIcon(ObjectEvent? ev)
+        {
+            return Resources.ResourceManager.GetObject("evicon24_" + ev?.Type) as Image;
+        }
+
+        private void eventsListView_MeasureItem(object sender, MeasureItemEventArgs e)
+        {
+            // Retrieve the string text of the current item
+            string text = eventsListView.Items[e.Index]?.ToString() ?? "null";
+
+            // Measure the exact text size using the control's target font
+            // Adding padding (e.g., + 4) prevents descenders (g, j, p, q, y) from clipping
+            Size textSize = TextRenderer.MeasureText(text, eventsListView.Font);
+
+            e.ItemHeight = textSize.Height + 4;
         }
     }
 }

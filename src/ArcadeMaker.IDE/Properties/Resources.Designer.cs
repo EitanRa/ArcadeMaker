@@ -183,9 +183,49 @@ namespace ArcadeMaker.IDE.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap evicon24_KeyPress {
+            get {
+                object obj = ResourceManager.GetObject("evicon24_KeyPress", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap evicon24_KeyRelease {
+            get {
+                object obj = ResourceManager.GetObject("evicon24_KeyRelease", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap evicon24_MouseDown {
             get {
                 object obj = ResourceManager.GetObject("evicon24_MouseDown", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap evicon24_MousePress {
+            get {
+                object obj = ResourceManager.GetObject("evicon24_MousePress", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap evicon24_MouseRelease {
+            get {
+                object obj = ResourceManager.GetObject("evicon24_MouseRelease", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

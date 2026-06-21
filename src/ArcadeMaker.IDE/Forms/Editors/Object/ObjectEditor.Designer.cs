@@ -199,13 +199,16 @@ namespace ArcadeMaker.IDE
             // eventsListView
             // 
             eventsListView.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
+            eventsListView.DrawMode = DrawMode.OwnerDrawVariable;
             eventsListView.Font = new Font("Microsoft Sans Serif", 14.25F, FontStyle.Regular, GraphicsUnit.Point, 177);
             eventsListView.FormattingEnabled = true;
             eventsListView.Location = new Point(276, 7);
             eventsListView.Margin = new Padding(4, 3, 4, 3);
             eventsListView.Name = "eventsListView";
-            eventsListView.Size = new Size(210, 316);
+            eventsListView.Size = new Size(210, 308);
             eventsListView.TabIndex = 25;
+            eventsListView.DrawItem += eventsListView_DrawItem;
+            eventsListView.MeasureItem += eventsListView_MeasureItem;
             eventsListView.SelectedIndexChanged += eventsListView_SelectedIndexChanged;
             // 
             // parentBox

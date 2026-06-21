@@ -130,12 +130,12 @@ namespace ArcadeMaker.IDE
 
         private void mousePressBtn_Click(object sender, EventArgs e)
         {
-            ShowMenu<Core.ExpSrc.Controls.MouseButton>(ObjectEvent.EventType.MouseDown);
+            ShowMenu<Core.ExpSrc.Controls.MouseButton>(ObjectEvent.EventType.MousePress);
         }
 
         private void mouseUpBtn_Click(object sender, EventArgs e)
         {
-            ShowMenu<Core.ExpSrc.Controls.MouseButton>(ObjectEvent.EventType.MouseDown);
+            ShowMenu<Core.ExpSrc.Controls.MouseButton>(ObjectEvent.EventType.MouseRelease);
         }
 
         private void drawBtn_Click(object sender, EventArgs e)
@@ -146,7 +146,7 @@ namespace ArcadeMaker.IDE
         private readonly GameObjectPickerBox collisionObjPicker = new();
         private void collisionBtn_Click(object sender, EventArgs e)
         {
-            collisionObjPicker.ShowMenu(collisionBtn.Location);
+            collisionObjPicker.ShowMenu(MousePosition, null);
         }
 
         //private void mouseMoveBtn_Click(object sender, EventArgs e)
