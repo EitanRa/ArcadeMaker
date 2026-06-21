@@ -20,6 +20,12 @@ namespace ArcadeMaker.IDE
         public SelectEventDialog()
         {
             InitializeComponent();
+
+            collisionObjPicker.SelectionChanged += (s, e) =>
+            {
+                if (e != null)
+                    SelectEvent(new CollisionEvent(e.name, []));
+            };
         }
 
         private void ShowMenu<T>(ObjectEvent.EventType ev, params string[] scriptArgs) where T : struct, Enum
@@ -99,7 +105,7 @@ namespace ArcadeMaker.IDE
 
         private void keyUpBtn_Click(object sender, EventArgs e)
         {
-            ShowMenu<Core.ExpSrc.Controls.Keys>(ObjectEvent.EventType.KeyUp);
+            ShowMenu<Core.ExpSrc.Controls.Keys>(ObjectEvent.EventType.KeyRelease);
         }
 
         private void keyPressBtn_Click(object sender, EventArgs e)
@@ -135,6 +141,12 @@ namespace ArcadeMaker.IDE
         private void drawBtn_Click(object sender, EventArgs e)
         {
             SelectEvent(new(ObjectEvent.EventType.Draw, []));
+        }
+
+        private readonly GameObjectPickerBox collisionObjPicker = new();
+        private void collisionBtn_Click(object sender, EventArgs e)
+        {
+            collisionObjPicker.ShowMenu(collisionBtn.Location);
         }
 
         //private void mouseMoveBtn_Click(object sender, EventArgs e)

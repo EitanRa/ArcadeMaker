@@ -24,6 +24,12 @@ namespace ArcadeMaker.Core.Models
         internal ObjectEvent? StepEvent { get; }
         internal ObjectEvent? DrawEvent { get; }
         internal ParameterizedObjectEvent<Keys>[] KeyDownEvents { get; }
+        internal ParameterizedObjectEvent<Keys>[] KeyPressEvents { get; }
+        internal ParameterizedObjectEvent<Keys>[] KeyReleaseEvents { get; }
+        internal ParameterizedObjectEvent<MouseButton>[] MouseDownEvents { get; }
+        internal ParameterizedObjectEvent<MouseButton>[] MousePressEvents { get; }
+        internal ParameterizedObjectEvent<MouseButton>[] MouseReleaseEvents { get; }
+        internal CollisionEvent[] CollisionEvents { get; }
 
         public ObjectModel(string name, Sprite? sprite, ObjectEvent[] events, ObjectProperty[] extraProperties)
         {
@@ -39,7 +45,13 @@ namespace ArcadeMaker.Core.Models
             CreateEvent = GetEvent(ObjectEvent.EventType.Create);
             StepEvent   = GetEvent(ObjectEvent.EventType.Step);
             DrawEvent   = GetEvent(ObjectEvent.EventType.Draw);
-            KeyDownEvents = [..GetEvents<Keys>(ObjectEvent.EventType.KeyDown)];
+            KeyDownEvents      = [.. GetEvents<Keys>(ObjectEvent.EventType.KeyDown)];
+            KeyPressEvents     = [.. GetEvents<Keys>(ObjectEvent.EventType.KeyPress)];
+            KeyReleaseEvents   = [.. GetEvents<Keys>(ObjectEvent.EventType.KeyRelease)];
+            MouseDownEvents    = [.. GetEvents<MouseButton>(ObjectEvent.EventType.MouseDown)];
+            MousePressEvents   = [.. GetEvents<MouseButton>(ObjectEvent.EventType.MousePress)];
+            MouseReleaseEvents = [.. GetEvents<MouseButton>(ObjectEvent.EventType.MouseRelease)];
+            CollisionEvents    = [.. Events.OfType<CollisionEvent>()];
         }
 
         private static ClassDefSpan CreateClass(string name, ObjectProperty[] extraProps)
@@ -91,17 +103,18 @@ namespace ArcadeMaker.Core.Models
 
         public enum EventType
         {
-            KeyDown,
-            KeyUp,
-            KeyPress,
             Create,
             Step,
+            Draw,
+            Collision,
+            KeyDown,
+            KeyPress,
+            KeyRelease,
             MouseDown,
             MousePress,
-            MouseUp,
+            MouseRelease,
             //MouseMove,
             MouseWheel,
-            Draw,
             Alarm
         }
 
@@ -171,5 +184,21 @@ namespace ArcadeMaker.Core.Models
         }
 
         public override string ToString() => $"{base.ToString()} <{Param}>";
+    }
+
+    public class CollisionEvent : ParameterizedObjectEvent<string>
+    {
+        public CollisionEvent() : base() { }
+        public CollisionEvent(string obj, IEnumerable<string> scripts) : base(EventType.Collision, scripts, obj, "other") { }
+
+        [XmlIgnore]
+        internal ObjectModel Model { get; private set; } = null!;
+
+        internal void Resolve(IGame game)
+        {
+            Model =
+                game.Objects.FirstOrDefault(o => o.Name == Param) ??
+                throw new KeyNotFoundException($"The given game doesn't contain an object model called '{Param}'.");
+        }
     }
 }

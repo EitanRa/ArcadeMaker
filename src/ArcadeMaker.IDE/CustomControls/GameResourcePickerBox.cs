@@ -123,14 +123,14 @@ namespace ArcadeMaker.IDE
             }
         }
 
-        private void ShowMenu(Control ctrl, Point position)
+        internal void ShowMenu(Point position, Control? ctrl = null)
         {
-            Menu.Show(this, position);
+            Menu.Show(ctrl ?? this, position);
         }
 
         private void nameBox_MouseClick(object sender, MouseEventArgs e)
         {
-            ShowMenu(nameBox, e.Location);
+            ShowMenu(e.Location);
         }
         private void SelectResource(T res)
         {
@@ -144,7 +144,7 @@ namespace ArcadeMaker.IDE
 
         private void menuBtn_Click(object sender, EventArgs e)
         {
-            ShowMenu(toolStrip1, toolStrip1.Location);
+            ShowMenu(toolStrip1.Location);
         }
 
         private void GameResourcePickerBox_Load(object sender, EventArgs e)

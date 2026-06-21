@@ -406,7 +406,7 @@ namespace ArcadeMaker.IDE
                     typeof(ParameterizedObjectEvent<Core.ExpSrc.Controls.Keys>),
                     typeof(ParameterizedObjectEvent<Core.ExpSrc.Controls.MouseButton>),
                     typeof(ParameterizedObjectEvent<Core.ExpSrc.Controls.GamepadButton>),
-                    //typeof(ParameterizedObjectEvent<Core.Models.ObjectModel>),
+                    typeof(CollisionEvent),
                     typeof(AssemblyReference),
                     typeof(IDEObjectProperty),
                     typeof(ArcadeMaker.Core.Resources.Serializeables.VariableType),

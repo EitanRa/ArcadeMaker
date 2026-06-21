@@ -206,13 +206,74 @@ namespace ArcadeMaker.Core.Runtime
                 var instance = roominsts[i];
 
                 // run other events that belong to step (like KeyDown)
-                // run KeyDown event
+                // run KeyDown events
                 foreach (var keyDownEv in instance.Model.KeyDownEvents)
                 {
                     if (Game.KeyDown(null, [((int)keyDownEv.Param).ToExp()]).Bool)
                     {
                         foreach (var script in keyDownEv.Docs ?? [])
                             script.Run(Interpreter, instance);
+                    }
+                }
+
+                // run KeyPress events
+                foreach (var ev in instance.Model.KeyPressEvents)
+                {
+                    if (Game.KeyPress(null, [((int)ev.Param).ToExp()]).Bool)
+                    {
+                        foreach (var script in ev.Docs ?? [])
+                            script.Run(Interpreter, instance);
+                    }
+                }
+
+                // run KeyRelease events
+                foreach (var ev in instance.Model.KeyReleaseEvents)
+                {
+                    if (Game.KeyRelease(null, [((int)ev.Param).ToExp()]).Bool)
+                    {
+                        foreach (var script in ev.Docs ?? [])
+                            script.Run(Interpreter, instance);
+                    }
+                }
+
+                // run MouseDown events
+                foreach (var ev in instance.Model.MouseDownEvents)
+                {
+                    if (Game.KeyDown(null, [((int)ev.Param).ToExp()]).Bool)
+                    {
+                        foreach (var script in ev.Docs ?? [])
+                            script.Run(Interpreter, instance);
+                    }
+                }
+
+                // run MousePress events
+                foreach (var ev in instance.Model.MousePressEvents)
+                {
+                    if (Game.KeyPress(null, [((int)ev.Param).ToExp()]).Bool)
+                    {
+                        foreach (var script in ev.Docs ?? [])
+                            script.Run(Interpreter, instance);
+                    }
+                }
+
+                // run MouseRelease events
+                foreach (var ev in instance.Model.MouseReleaseEvents)
+                {
+                    if (Game.KeyRelease(null, [((int)ev.Param).ToExp()]).Bool)
+                    {
+                        foreach (var script in ev.Docs ?? [])
+                            script.Run(Interpreter, instance);
+                    }
+                }
+
+                // run collision events
+                foreach (var ev in instance.Model.CollisionEvents)
+                {
+                    Runtime.Instance? other = Game.InstanceMeeting(instance, [instance.X.Value, instance.Y.Value, ev.Model.Class.ExpType]);
+                    if (other != null)
+                    {
+                        foreach (var script in ev.Docs ?? [])
+                            script.Run(Interpreter, instance, other);
                     }
                 }
 
@@ -307,6 +368,13 @@ namespace ArcadeMaker.Core.Runtime
             catch (Exception ex)
             {
                 throw new LoadingException("An error occurred while loading the game.", ex);
+            }
+
+            // resolve collision events
+            foreach (var obj in Game.Objects)
+            {
+                foreach (var collisionEv in obj.CollisionEvents)
+                    collisionEv.Resolve(Game);
             }
 
             // make sure game has any rooms
