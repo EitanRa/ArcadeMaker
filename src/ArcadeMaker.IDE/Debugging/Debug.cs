@@ -96,10 +96,11 @@ internal static class Debug
                 // collision events
                 foreach (var colEv in obj.Events.OfType<CollisionEvent>())
                 {
-                    if (!Environment.project.items.OfType<GameObject>().Any(other => other.name == colEv.Param))
+                    if (Environment.project.GetItem<GameObject>(colEv.Param) == null)
                     {
-                        Solutions.RemoveCollisionWithDeletedObjectsSolution solution = new(colEv.Param);
-                        CatchErrors(new ProjectError(ProjectError.Source_Engine, $"Object {obj.name} subsribes a collision events with an object that does not exists anymore ('{colEv.Param}')", obj.name + ".Events", 0, solution));
+                        Solutions.RemoveCollisionWithDeletedObjectsSolution allSolution = new(colEv.Param);
+                        Solutions.RemoveCollisionWithDeletedObjectsSolution specificSolution = new(colEv.Param, obj);
+                        CatchErrors(new ProjectError(ProjectError.Source_Engine, $"Object '{obj.name}' subscribes a collision event with an object that does not exist anymore ('{colEv.Param}').", obj.name + ".Events", 0, allSolution, specificSolution));
                     }
                 }
             }
@@ -132,7 +133,7 @@ internal static class Debug
             ListViewItem errItem = new(err.In) { Tag = err };
             errItem.SubItems.Add(err.Message);
             errItem.SubItems.Add(err.File);
-            errItem.SubItems.Add(err.Line.ToString());
+            errItem.SubItems.Add(err.Line >= 1 ? err.Line.ToString() : "");
             errorsBox.InvokeIfRequired(() => errorsBox.Items.Add(errItem));
         }
     }
@@ -158,10 +159,14 @@ internal static class Debug
             }
             solveMenu.Enabled = solveMenu.DropDownItems.Count >= 1;
 
+            // create copy button
+            ToolStripMenuItem copyBtn = new("Copy");
+            copyBtn.Click += (s, e) => Clipboard.SetText(error.Message);
+
             // create the main menu
             errorsMenu?.Dispose();
             errorsMenu = new();
-            errorsMenu.Items.AddRange([solveMenu]);
+            errorsMenu.Items.AddRange([solveMenu, copyBtn]);
 
             // show main menu
             errorsMenu.Show(errorsBox, e.Location);
