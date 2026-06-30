@@ -51,6 +51,8 @@ namespace ArcadeMaker.IDE
             scriptsListView = new ListBox();
             addScriptBtn = new Button();
             deleteScriptBtn = new Button();
+            moveScriptUpBtn = new Button();
+            moveScriptDownBtn = new Button();
             ((System.ComponentModel.ISupportInitialize)depthBox).BeginInit();
             SuspendLayout();
             // 
@@ -259,7 +261,7 @@ namespace ArcadeMaker.IDE
             addScriptBtn.Name = "addScriptBtn";
             addScriptBtn.Size = new Size(163, 27);
             addScriptBtn.TabIndex = 28;
-            addScriptBtn.Text = "Add Script To Selected Event";
+            addScriptBtn.Text = "Add Script";
             addScriptBtn.UseVisualStyleBackColor = true;
             addScriptBtn.Click += addScriptBtn_Click;
             // 
@@ -268,17 +270,39 @@ namespace ArcadeMaker.IDE
             deleteScriptBtn.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             deleteScriptBtn.Location = new Point(493, 362);
             deleteScriptBtn.Name = "deleteScriptBtn";
-            deleteScriptBtn.Size = new Size(163, 27);
+            deleteScriptBtn.Size = new Size(91, 27);
             deleteScriptBtn.TabIndex = 29;
             deleteScriptBtn.Text = "Delete Script";
             deleteScriptBtn.UseVisualStyleBackColor = true;
             deleteScriptBtn.Click += deleteScriptBtn_Click;
+            // 
+            // moveScriptUpBtn
+            // 
+            moveScriptUpBtn.Location = new Point(590, 362);
+            moveScriptUpBtn.Name = "moveScriptUpBtn";
+            moveScriptUpBtn.Size = new Size(30, 27);
+            moveScriptUpBtn.TabIndex = 30;
+            moveScriptUpBtn.Text = "^";
+            moveScriptUpBtn.UseVisualStyleBackColor = true;
+            moveScriptUpBtn.Click += moveScriptUpBtn_Click;
+            // 
+            // moveScriptDownBtn
+            // 
+            moveScriptDownBtn.Location = new Point(626, 362);
+            moveScriptDownBtn.Name = "moveScriptDownBtn";
+            moveScriptDownBtn.Size = new Size(30, 27);
+            moveScriptDownBtn.TabIndex = 31;
+            moveScriptDownBtn.Text = "v";
+            moveScriptDownBtn.UseVisualStyleBackColor = true;
+            moveScriptDownBtn.Click += moveScriptDownBtn_Click;
             // 
             // ObjectEditor
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1060, 399);
+            Controls.Add(moveScriptDownBtn);
+            Controls.Add(moveScriptUpBtn);
             Controls.Add(deleteScriptBtn);
             Controls.Add(addScriptBtn);
             Controls.Add(scriptsListView);
@@ -332,5 +356,7 @@ namespace ArcadeMaker.IDE
         private ListBox scriptsListView;
         private Button addScriptBtn;
         private Button deleteScriptBtn;
+        private Button moveScriptUpBtn;
+        private Button moveScriptDownBtn;
     }
 }

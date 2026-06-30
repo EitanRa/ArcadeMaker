@@ -1,4 +1,5 @@
-﻿using ArcadeMaker.Core.Models;
+﻿using ArcadeMaker.Core.Common;
+using ArcadeMaker.Core.Models;
 using Exp;
 using Exp.Spans;
 using System;
@@ -89,19 +90,19 @@ public class SerializeableGameObject : SerializeableGameItem
 
 public class EventScript : IContainsScript
 {
+    public Wrapper<string> Pointer { get; }
     public string Script
     {
-        get => ScriptIndex < Event.Scripts.Count ? (Event.Scripts[ScriptIndex] ?? "") : "<Error>";
+        get => Pointer.Value ?? "<Error>";
         set
         {
-            Event.Scripts[ScriptIndex] = value;
+            Pointer.Value = value;
 
             UpdateDescription();
         }
     }
 
     public ObjectEvent Event { get; set; }
-    public int ScriptIndex { get; set; }
 
     public string? Description { get; set; }
 
@@ -113,10 +114,10 @@ public class EventScript : IContainsScript
         this.Description = description;
     }
 
-    public EventScript(ObjectEvent ev, int index)
+    public EventScript(ObjectEvent ev, Wrapper<string> script)
     {
         Event = ev;
-        ScriptIndex = index;
+        this.Pointer = script;
 
         UpdateDescription();
     }

@@ -11,9 +11,9 @@ using Exp;
 
 namespace ArcadeMaker.IDE.Items
 {
-    public class GameObject : GameItem //, IContainsScript
+    public class GameObject : GameItem, ISetsIcon //, IContainsScript
     {
-        public static System.Drawing.Bitmap icon { get; } = Properties.Resources.object32;
+        public static Bitmap Icon => Properties.Resources.object32;
 
         public List<IDEObjectProperty> ExtraProperties { get; } = [];
         public List<ObjectEvent> Events { get; } = [];

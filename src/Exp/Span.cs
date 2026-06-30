@@ -211,7 +211,7 @@ class ExternClassDefSpan : WordSpan, IDefination, IKeyword, IExpItem
             type.GetEnumNames().ForEach((name, index) => EnumValues.Add(name.StartWithLowerCase(), Interpreter.CsValToExpVal(vals.GetValue(index))));
         }
 
-        // get all public static methods of the type
+        // get all public static methods / properties of the type
         this.Methods = type.GetMethods(BindingFlags.Public | BindingFlags.Static);
         this.Constructors = type.GetConstructors(BindingFlags.Public | BindingFlags.Instance);
         this.Props = type.GetProperties(BindingFlags.Public | BindingFlags.Static);

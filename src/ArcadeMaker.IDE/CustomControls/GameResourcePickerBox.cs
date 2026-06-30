@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -53,6 +54,7 @@ namespace ArcadeMaker.IDE
         public GameResourcePickerBox(string defaultItemTitle = "<None>", T defaultRes = null)
         {
             InitializeComponent();
+            nameBox.GotFocus += (s, e) => ExternMethods.HideCaret(nameBox.Handle);
             this.defaultItemTitle = defaultItemTitle;
             nameBox.Text = defaultItemTitle;
             Resource = defaultRes;
@@ -166,4 +168,10 @@ namespace ArcadeMaker.IDE
     public class GameObjectPickerBox : GameResourcePickerBox<GameObject> { }
     public class GameSpritePickerBox : GameResourcePickerBox<GameSprite> { }
     public class GameBackgroundPickerBox : GameResourcePickerBox<GameBackground> { }
+    static class ExternMethods
+    {
+
+        [DllImport("User32.dll")]
+        internal static extern bool HideCaret(IntPtr hWnd);
+    }
 }

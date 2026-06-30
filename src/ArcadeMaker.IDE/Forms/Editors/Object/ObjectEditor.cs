@@ -16,6 +16,7 @@ using Exp;
 using ArcadeMaker.Core.Resources.Serializeables;
 using ArcadeMaker.Core.Models;
 using ArcadeMaker.IDE.Properties;
+using ArcadeMaker.Core.Common;
 
 namespace ArcadeMaker.IDE
 {
@@ -257,8 +258,9 @@ namespace ArcadeMaker.IDE
                 return;
             }
 
-            ev.Scripts.Add("");
-            scriptsListView.Items.Add(new EventScript(ev, ev.Scripts.Count - 1));
+            Wrapper<string> script = "";
+            ev.Scripts.Add(script);
+            scriptsListView.Items.Add(new EventScript(ev, script));
         }
 
         private void eventsListView_SelectedIndexChanged(object sender, EventArgs e)
@@ -278,7 +280,7 @@ namespace ArcadeMaker.IDE
             int i = 0;
             foreach (var script in ev.Scripts)
             {
-                scriptsListView.Items.Add(new EventScript(ev, i++));
+                scriptsListView.Items.Add(new EventScript(ev, script));
             }
         }
 
@@ -306,7 +308,7 @@ namespace ArcadeMaker.IDE
             if (scriptsListView.SelectedItem is not EventScript script)
                 return;
 
-            script.Event.Scripts.RemoveAt(script.ScriptIndex);
+            script.Event.Scripts.Remove(script.Script);
             scriptsListView.Items.Remove(script);
         }
 
@@ -387,6 +389,35 @@ namespace ArcadeMaker.IDE
             Size textSize = TextRenderer.MeasureText(text, eventsListView.Font);
 
             e.ItemHeight = textSize.Height + 4;
+        }
+
+        private void moveScriptUpBtn_Click(object sender, EventArgs e)
+        {
+            if (scriptsListView.SelectedIndex < 1 || scriptsListView.SelectedItem is not EventScript script) return;
+
+            var upperPointer = (EventScript)scriptsListView.Items[scriptsListView.SelectedIndex - 1];
+            string upperScript = upperPointer.Script;
+            upperPointer.Script = script.Script;
+            script.Script = upperScript;
+
+            scriptsListView.SelectedIndex--;
+            scriptsListView.Invalidate();
+        }
+
+        private void moveScriptDownBtn_Click(object sender, EventArgs e)
+        {
+            if (scriptsListView.SelectedIndex < 0 ||
+                scriptsListView.SelectedIndex >= scriptsListView.Items.Count - 1 ||
+                scriptsListView.SelectedItem is not EventScript script)
+                return;
+
+            var downerPointer = (EventScript)scriptsListView.Items[scriptsListView.SelectedIndex + 1];
+            string downerScript = downerPointer.Script;
+            downerPointer.Script = script.Script;
+            script.Script = downerScript;
+
+            scriptsListView.SelectedIndex++;
+            scriptsListView.Invalidate();
         }
     }
 }

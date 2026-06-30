@@ -5,7 +5,7 @@ using System.Xml.Serialization;
 using ArcadeMaker.Core.ExpSrc.Controls;
 using ArcadeMaker.Core.Resources;
 using ArcadeMaker.Core.Resources.Serializeables;
-using ArcadeMaker.Core.Runtime;
+using ArcadeMaker.Core.Common;
 using Exp;
 using Exp.Spans;
 
@@ -119,7 +119,7 @@ namespace ArcadeMaker.Core.Models
         }
 
         public EventType Type { get; set; }
-        public List<string> Scripts { get; set; }
+        public List<Wrapper<string>> Scripts { get; set; }
 
         [XmlIgnore]
         public List<InstanceScriptDocument>? Docs { get; private set; }
@@ -131,10 +131,10 @@ namespace ArcadeMaker.Core.Models
             //if (Docs != null)
             //    throw new InvalidOperationException("Documents were already been created.");
 
-            Docs = new List<InstanceScriptDocument>();
+            Docs = [];
             for (int i = 0; i < Scripts.Count; i++)
             {
-                Docs.Add(new InstanceScriptDocument($"{Type} event of object {def.Name} (Script {i})", def, Scripts[i], ScriptArgs));
+                Docs.Add(new InstanceScriptDocument($"{def.Name}.Events.{Type}{(GetParam(out var param) ? $"<{param}>" : "")}.{i}", def, Scripts[i] ?? throw new NullReferenceException($"{nameof(Scripts)}[{i}]"), ScriptArgs));
             }
         }
 
