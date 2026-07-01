@@ -31,6 +31,8 @@ namespace ArcadeMaker.IDE
             }
         }
 
+        private ObjectEvent? changeEvent;
+
         public ObjectEditor(GameObject obj)
         {
             InitializeComponent();
@@ -97,6 +99,20 @@ namespace ArcadeMaker.IDE
                     obj.Events.Add(ea);
                     eventsListView.Items.Add(ea);
                 }
+                else if (changeEvent != null)
+                {
+                    MessageBox.Show("The selected event already exists.");
+                    return;
+                }
+
+                if (changeEvent != null)
+                {
+                    // copy scripts from old to new and remove old
+                    ea.Scripts.AddRange(changeEvent.Scripts);
+                    obj.Events.Remove(changeEvent);
+                    eventsListView.Items.Remove(changeEvent);
+                }
+
                 eventsListView.SelectedItem = existing;
             };
             LoadSpriteBox();
@@ -182,14 +198,21 @@ namespace ArcadeMaker.IDE
             {
                 var item = eventsListView.SelectedItems[0];
                 ObjectEvent ev = (ObjectEvent)item!;
-                obj.Events.Remove(ev);
-                eventsListView.Items.Remove(item!);
+
+                string warning = $"Are you sure yow want to delete event {ev}?\nAll of its scripts will be deleted too.";
+                bool confirm = ev.Scripts.Count == 0 || MessageBox.Show(warning, "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes;
+
+                if (confirm)
+                {
+                    obj.Events.Remove(ev);
+                    eventsListView.Items.Remove(item!);
+                }
             }
             catch (Exception ex)
             {
-                string err = "Cannot delete or change event";
+                string err = "Cannot delete event";
 #if DEBUG
-                err += "\n\nException:\n" + ex;
+                err += "\n\n[DEBUG ONLY]\nException:\n" + ex;
 #endif
                 MessageBox.Show(err, "Error");
             }
@@ -197,8 +220,14 @@ namespace ArcadeMaker.IDE
 
         private void changeEventBtn_Click(object sender, EventArgs e)
         {
-            deleteEventBtn_Click(null, null);
-            addEventBtn_Click(null, null);
+            changeEvent = eventsListView.SelectedItem as ObjectEvent;
+            if (changeEvent == null)
+                MessageBox.Show("Select an event to change.");
+            else
+            {
+                addEventBtn_Click(null, null);
+                changeEvent = null;
+            }
         }
 
         private void editSpriteBtn_Click(object sender, EventArgs e)
@@ -306,8 +335,14 @@ namespace ArcadeMaker.IDE
             if (scriptsListView.SelectedItem is not EventScript script)
                 return;
 
-            script.Event.Scripts.Remove(script.Pointer);
-            scriptsListView.Items.Remove(script);
+            bool confirm = string.IsNullOrWhiteSpace(script.Script) ||
+                           MessageBox.Show($"Are you sure yow want to delete this script ({script})?", "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes;
+
+            if (confirm)
+            {
+                script.Event.Scripts.Remove(script.Pointer);
+                scriptsListView.Items.Remove(script);
+            }
         }
 
         private void scriptsListView_SelectedIndexChanged(object sender, EventArgs e)
@@ -374,7 +409,7 @@ namespace ArcadeMaker.IDE
 
         internal static Image? GetIcon(ObjectEvent.EventType ev)
         {
-            return Resources.ResourceManager.GetObject("evicon24_" + ev) as Image;
+            return Resources.ResourceManager.GetObject("evicon24_" + ev) as Image ?? Resources.evicon24_Default;
         }
 
         private void eventsListView_MeasureItem(object sender, MeasureItemEventArgs e)

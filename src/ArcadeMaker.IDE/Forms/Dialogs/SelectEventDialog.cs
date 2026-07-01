@@ -193,5 +193,15 @@ namespace ArcadeMaker.IDE
         {
             SelectEvent(new(ObjectEvent.EventType.Destroy, []));
         }
+
+        private void outsideRoomBtn_Click(object sender, EventArgs e)
+        {
+            SelectEvent(new(ObjectEvent.EventType.OutsideRoom, []));
+        }
+
+        private void otherBtn_Click(object sender, EventArgs e)
+        {
+            otherMenu.Show(otherBtn, Point.Empty);
+        }
     }
 }

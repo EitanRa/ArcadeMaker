@@ -46,7 +46,11 @@ namespace ArcadeMaker.IDE
             mouseMenuBtn = new Button();
             collisionBtn = new Button();
             destroyBtn = new Button();
+            otherBtn = new Button();
+            otherMenu = new ContextMenuStrip(components);
+            outsideRoomBtn = new ToolStripMenuItem();
             mouseMenu.SuspendLayout();
+            otherMenu.SuspendLayout();
             SuspendLayout();
             // 
             // keyDownBtn
@@ -164,7 +168,7 @@ namespace ArcadeMaker.IDE
             // 
             // cancelBtn
             // 
-            cancelBtn.Location = new Point(64, 240);
+            cancelBtn.Location = new Point(67, 253);
             cancelBtn.Margin = new Padding(4, 3, 4, 3);
             cancelBtn.Name = "cancelBtn";
             cancelBtn.Size = new Size(216, 27);
@@ -226,11 +230,39 @@ namespace ArcadeMaker.IDE
             destroyBtn.UseVisualStyleBackColor = true;
             destroyBtn.Click += destroyBtn_Click;
             // 
+            // otherBtn
+            // 
+            otherBtn.ContextMenuStrip = otherMenu;
+            otherBtn.Image = Properties.Resources.evicon24_Default;
+            otherBtn.ImageAlign = ContentAlignment.MiddleLeft;
+            otherBtn.Location = new Point(13, 204);
+            otherBtn.Margin = new Padding(4, 3, 4, 3);
+            otherBtn.Name = "otherBtn";
+            otherBtn.Size = new Size(157, 32);
+            otherBtn.TabIndex = 12;
+            otherBtn.Text = "Other";
+            otherBtn.UseVisualStyleBackColor = true;
+            otherBtn.Click += otherBtn_Click;
+            // 
+            // otherMenu
+            // 
+            otherMenu.Items.AddRange(new ToolStripItem[] { outsideRoomBtn });
+            otherMenu.Name = "otherMenu";
+            otherMenu.Size = new Size(151, 26);
+            // 
+            // outsideRoomBtn
+            // 
+            outsideRoomBtn.Name = "outsideRoomBtn";
+            outsideRoomBtn.Size = new Size(150, 22);
+            outsideRoomBtn.Text = "Outside Room";
+            outsideRoomBtn.Click += outsideRoomBtn_Click;
+            // 
             // SelectEventDialog
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(353, 279);
+            ClientSize = new Size(353, 292);
+            Controls.Add(otherBtn);
             Controls.Add(destroyBtn);
             Controls.Add(collisionBtn);
             Controls.Add(alarmBtn);
@@ -251,6 +283,7 @@ namespace ArcadeMaker.IDE
             Text = "Select Event";
             Load += SelectEventDialog_Load;
             mouseMenu.ResumeLayout(false);
+            otherMenu.ResumeLayout(false);
             ResumeLayout(false);
 
         }
@@ -273,5 +306,8 @@ namespace ArcadeMaker.IDE
         private System.Windows.Forms.Button mouseMenuBtn;
         private Button collisionBtn;
         private Button destroyBtn;
+        private Button otherBtn;
+        private ContextMenuStrip otherMenu;
+        private ToolStripMenuItem outsideRoomBtn;
     }
 }

@@ -20,7 +20,7 @@ namespace ArcadeMaker.Core.Models
         public (int Depth, bool Visible, bool Solid) InitValues { get; set; }
         public ObjectProperty[] ExtraProperties { get; }
 
-        internal ObjectEvent? CreateEvent { get; }
+        internal ObjectEvent? CreateEvent { get; set; } // setter is required for the properties initializer generator
         internal ObjectEvent? StepEvent { get; }
         internal ObjectEvent? DrawEvent { get; }
         internal ObjectEvent? DestroyEvent { get; }
@@ -32,6 +32,7 @@ namespace ArcadeMaker.Core.Models
         internal ParameterizedObjectEvent<MouseButton>[] MouseReleaseEvents { get; }
         internal CollisionEvent[] CollisionEvents { get; }
         internal ParameterizedObjectEvent<int>[] AlarmEvents { get; }
+        internal ObjectEvent? OutsideRoomEvent { get; }
 
         public ObjectModel(string name, Sprite? sprite, ObjectEvent[] events, ObjectProperty[] extraProperties)
         {
@@ -44,10 +45,11 @@ namespace ArcadeMaker.Core.Models
             
             this.Events = [..events];
 
-            CreateEvent  = GetEvent(ObjectEvent.EventType.Create);
-            StepEvent    = GetEvent(ObjectEvent.EventType.Step);
-            DrawEvent    = GetEvent(ObjectEvent.EventType.Draw);
-            DestroyEvent = GetEvent(ObjectEvent.EventType.Destroy);
+            CreateEvent        = GetEvent(ObjectEvent.EventType.Create);
+            StepEvent          = GetEvent(ObjectEvent.EventType.Step);
+            DrawEvent          = GetEvent(ObjectEvent.EventType.Draw);
+            DestroyEvent       = GetEvent(ObjectEvent.EventType.Destroy);
+            OutsideRoomEvent   = GetEvent(ObjectEvent.EventType.OutsideRoom);
             KeyDownEvents      = [.. GetEvents<Keys>(ObjectEvent.EventType.KeyDown)];
             KeyPressEvents     = [.. GetEvents<Keys>(ObjectEvent.EventType.KeyPress)];
             KeyReleaseEvents   = [.. GetEvents<Keys>(ObjectEvent.EventType.KeyRelease)];
@@ -119,7 +121,8 @@ namespace ArcadeMaker.Core.Models
             MousePress,
             MouseRelease,
             MouseWheel,
-            Alarm
+            Alarm,
+            OutsideRoom
         }
 
         public EventType Type { get; set; }

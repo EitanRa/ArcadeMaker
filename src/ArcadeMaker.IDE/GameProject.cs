@@ -67,7 +67,7 @@ namespace ArcadeMaker.IDE
             Directory.CreateDirectory(atlasesDir);
             string mainAtlasPath = atlasesDir + @"\main.png";
             atlas.Save(mainAtlasPath);
-            sproject.textureAtlasMap = new() { AtlasFilePath = mainAtlasPath, Items = atlasMap.Map(rect => new TextureAtlasMap.Item { SpriteName = rect.Sprite.name, ImageIndex = rect.Index, X = (int)rect.Rect.X, Y = (int)rect.Rect.Y, W = (int)rect.Rect.Width, H = (int)rect.Rect.Height }).ToArray() };
+            sproject.textureAtlasMap = new() { AtlasFilePath = mainAtlasPath, Items = atlasMap.Map(static rect => new TextureAtlasMap.Item { SpriteName = rect.Sprite.name, ImageIndex = rect.Index, X = (int)rect.Rect.X, Y = (int)rect.Rect.Y, W = (int)rect.Rect.Width, H = (int)rect.Rect.Height }).ToArray() };
 
             // save game items
             foreach (GameSprite sprite in sprites)

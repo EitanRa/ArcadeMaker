@@ -38,7 +38,7 @@ namespace ArcadeMaker.Core.Runtime
             foreach (ObjectModel model in Game.Objects)
             {
                 // create a script that initializes the property for an instance
-                string initializerScript = "";
+                string initializerScript = $"using {ExpSrc.ExpSrc.EngineNamespace}\nusing {ExpSrc.ExpSrc.GameNamespace}\n\n";
 
                 foreach (var extrap in model.ExtraProperties)
                 {
@@ -57,6 +57,7 @@ namespace ArcadeMaker.Core.Runtime
                     createEv = new(ObjectEvent.EventType.Create, []);
                     createEv.CreateDocs(model.Class);
                     model.Events.Add(createEv);
+                    model.CreateEvent = createEv;
                 }
 
                 // insert the initializer doc to create event
@@ -201,7 +202,7 @@ namespace ArcadeMaker.Core.Runtime
 
             // run all step events for the current room
             var roominsts = Game.CurrentRoom.Instances;
-            for (int i = 0; i < roominsts.Count; i++) // if we use foreach here, modifications to the list of instances (like destroying an instance and removing it from the list) will cause an exception, but with this for loop it won't
+            for (int i = 0; i < roominsts.Count; i++) // if we use foreach here, modifications to the list of instances (like destroying an instance and removing it from the list) would cause an exception, but with this for loop it won't
             {
                 var instance = roominsts[i];
 
@@ -239,7 +240,8 @@ namespace ArcadeMaker.Core.Runtime
                 // run MouseDown events
                 foreach (var ev in instance.Model.MouseDownEvents)
                 {
-                    if (Game.KeyDown(null, [((int)ev.Param).ToExp()]).Bool)
+                    // also check collision with mouse
+                    if (Game.MouseButtonDown(null, [((int)ev.Param).ToExp()]).Bool && Game.PointMeeting(instance, [Game.GetMouseX(null, []), Game.GetMouseY(null, [])]).Bool)
                     {
                         foreach (var script in ev.Docs ?? [])
                             script.Run(Interpreter, instance);
@@ -249,7 +251,8 @@ namespace ArcadeMaker.Core.Runtime
                 // run MousePress events
                 foreach (var ev in instance.Model.MousePressEvents)
                 {
-                    if (Game.KeyPress(null, [((int)ev.Param).ToExp()]).Bool)
+                    // also check collision with mouse
+                    if (Game.MouseButtonPress(null, [((int)ev.Param).ToExp()]).Bool && Game.PointMeeting(instance, [Game.GetMouseX(null, []), Game.GetMouseY(null, [])]).Bool)
                     {
                         foreach (var script in ev.Docs ?? [])
                             script.Run(Interpreter, instance);
@@ -259,7 +262,8 @@ namespace ArcadeMaker.Core.Runtime
                 // run MouseRelease events
                 foreach (var ev in instance.Model.MouseReleaseEvents)
                 {
-                    if (Game.KeyRelease(null, [((int)ev.Param).ToExp()]).Bool)
+                    // also check collision with mouse
+                    if (Game.MouseButtonRelease(null, [((int)ev.Param).ToExp()]).Bool && Game.PointMeeting(instance, [Game.GetMouseX(null, []), Game.GetMouseY(null, [])]).Bool)
                     {
                         foreach (var script in ev.Docs ?? [])
                             script.Run(Interpreter, instance);
@@ -279,6 +283,16 @@ namespace ArcadeMaker.Core.Runtime
 
                 // tick alarms
                 instance.TickAlarms(Interpreter);
+
+                // run outside room events
+                if (instance.Model.OutsideRoomEvent != null)
+                {
+                    if (Game.OutsideRoom(instance, []).Bool)
+                    {
+                        foreach (var script in instance.Model.OutsideRoomEvent?.Docs ?? [])
+                            script.Run(Interpreter, instance);
+                    }
+                }
 
                 if (instance.Model.StepEvent != null)
                     foreach (var script in instance.Model.StepEvent.Docs!)
@@ -411,10 +425,33 @@ namespace ArcadeMaker.Core.Runtime
             if (!Game.Rooms.Contains(room.Model))
                 throw new Exception("The specified room is not part of the game.");
 
+            // if there's an existing room ( =it's not the beginning of the game), destroy them all
+            if (Game.CurrentRoom != null)
+            {
+                while (Game.CurrentRoom.Instances.Count >= 1)
+                {
+                    Destroy(Game.CurrentRoom.Instances[0], []);
+                }
+            }
+
             Game.CurrentRoom = room;
-            Game.SetWindowsSize(room.Model.Width, room.Model.Height);
             Game.SetCaption(room.Model.Caption);
             Game.BackColor = room.Model.BackgroundColor;
+
+            // set window size
+            int winWidth = room.Model.Width, winHeight = room.Model.Height;
+            if (room.Model.Views.Count >= 1)
+            {
+                winWidth = 1;
+                winHeight = 1;
+
+                foreach (var view in room.Model.Views)
+                {
+                    winWidth  = System.Math.Max(winWidth,  view.PortX + view.PortWidth );
+                    winHeight = System.Math.Max(winHeight, view.PortY + view.PortHeight);
+                }
+            }
+            Game.SetWindowsSize(winWidth, winHeight);
 
             // run all create events for the new room
             foreach (var instance in room.Instances)
