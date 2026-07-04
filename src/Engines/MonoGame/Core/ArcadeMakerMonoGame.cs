@@ -434,7 +434,7 @@ namespace ArcadeMaker.Engines.MonoGame.Core
                 _ => throw new ArgumentException("Valid inputs for argument playerIndex is a number in range of 1-4.")
             };
 
-            return gamepad.Value.IsButtonDown((Buttons)args[1].Number);
+            return gamepad.Value.IsButtonDown((Buttons)args[1].ThrowIfNull().Number);
         }
 
         public BoolValue MouseButtonDown(Exp.Instance? _, IValue?[] args)

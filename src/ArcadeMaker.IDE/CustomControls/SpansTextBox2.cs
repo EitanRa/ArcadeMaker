@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using System.Collections;
 using ArcadeMaker.IDE.Scripting;
 using ArcadeMaker.Core.ExpSrc;
+using Exp;
 
 namespace ArcadeMaker.IDE
 {
@@ -1831,10 +1832,15 @@ namespace ArcadeMaker.IDE
             Text = expItem.Name;
             Description = expItem.Desc;
 
-            if (expItem is ExternEngineFunc)
+            if (expItem is ExternEngineFunc func)
             {
                 Type = "function";
                 TypeLabelColor = Color.DeepPink;
+
+                // add parameters info
+                DisplayText += $"({string.Join(", ", func.Params.Map(p => p.Name))})";
+                if (func.Params.Length >= 1)
+                    Description += "\n\nParameters:\n" + string.Join('\n', func.Params.Map(p => $"{p.Name}: {p.Type} {(p.Description == null ? "" : " (" + p.Description + ")")}"));
             }
             else if (expItem is ExternEngineProperty)
             {

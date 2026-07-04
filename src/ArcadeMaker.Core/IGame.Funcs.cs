@@ -35,6 +35,7 @@ public partial interface IGame
     /// <param name="args">Arguments where args[0] is the key code to check (You can use the <see cref="ExpSrc.Controls.Keys"/> enum for this.</param>
     /// <returns>True if the key is currently down; otherwise false.</returns>
     [ExpFunc(1)]
+    [Param("key", ParamType.Key, "The key to test its state.")]
     BoolValue KeyDown(Exp.Instance? _, IValue?[] args);
 
     /// <summary>
@@ -44,6 +45,7 @@ public partial interface IGame
     /// <param name="args">Arguments where args[0] is the key code to check (You can use the <see cref="ExpSrc.Controls.Keys"/> enum for this.</param>
     /// <returns>True if the key was pressed this frame; otherwise false.</returns>
     [ExpFunc(1)]
+    [Param("key", ParamType.Key, "The key to test its state.")]
     BoolValue KeyPress(Exp.Instance? _, IValue?[] args);
 
     /// <summary>
@@ -53,6 +55,7 @@ public partial interface IGame
     /// <param name="args">Arguments where args[0] is the key code to check (You can use the <see cref="ExpSrc.Controls.Keys"/> enum for this.</param>
     /// <returns>True if the key was released this frame; otherwise false.</returns>
     [ExpFunc(1)]
+    [Param("key", ParamType.Key, "The key to test its state.")]
     BoolValue KeyRelease(Exp.Instance? _, IValue?[] args);
 
     /// <summary>
@@ -62,6 +65,7 @@ public partial interface IGame
     /// <param name="args">Arguments where args[0] is the mouse button index to check (You can use the <see cref="ExpSrc.Controls.MouseButton"/> enum for this.</param>
     /// <returns>True if the mouse button is currently down; otherwise false.</returns>
     [ExpFunc(1)]
+    [Param("button", ParamType.MouseButton, "The button to test its state.")]
     BoolValue MouseButtonDown(Exp.Instance? _, IValue?[] args);
 
     /// <summary>
@@ -71,6 +75,7 @@ public partial interface IGame
     /// <param name="args">Arguments where args[0] is the mouse button index to check (You can use the <see cref="ExpSrc.Controls.MouseButton"/> enum for this.</param>
     /// <returns>True if the mouse button was pressed this frame; otherwise false.</returns>
     [ExpFunc(1)]
+    [Param("button", ParamType.MouseButton, "The button to test its state.")]
     BoolValue MouseButtonPress(Exp.Instance? _, IValue?[] args);
 
     /// <summary>
@@ -80,6 +85,7 @@ public partial interface IGame
     /// <param name="args">Arguments where args[0] is the mouse button index to check (You can use the <see cref="ExpSrc.Controls.MouseButton"/> enum for this.</param>
     /// <returns>True if the mouse button was released this frame; otherwise false.</returns>
     [ExpFunc(1)]
+    [Param("button", ParamType.MouseButton, "The button to test its state.")]
     BoolValue MouseButtonRelease(Exp.Instance? _, IValue?[] args);
 
     /// <summary>
@@ -164,9 +170,11 @@ public partial interface IGame
     /// Checks whether the specified gamepad button is currently down.
     /// </summary>
     /// <param name="_">The calling EXP instance (unused).</param>
-    /// <param name="args">Arguments where args[0] is the button index to check (You can use the <see cref="ExpSrc.Controls.GamepadButton"/> enum for this.</param>
+    /// <param name="args">Arguments where args[0] is the gamepad number and args[1] is the button index to check (You can use the <see cref="ExpSrc.Controls.GamepadButton"/> enum for this.</param>
     /// <returns>True if the specified gamepad button is down; otherwise false.</returns>
     [ExpFunc(1)]
+    [Param("gamepad", ParamType.Number, "The gamepad number to check.")]
+    [Param("button", ParamType.GamepadButton, "The button to test its state.")]
     BoolValue GamepadButtonDown(Exp.Instance? _, IValue?[] args);
 
     /// <summary>
@@ -176,6 +184,8 @@ public partial interface IGame
     /// <param name="args">Arguments where args[0] and args[1] are the point X and Y coordinates.</param>
     /// <returns>True if the point lies inside the instance's mask rectangle; otherwise false.</returns>
     [ExpFunc(2, IsNonStaticFuncOfGameObjects = true)]
+    [Param("x", ParamType.Number, "Point x.")]
+    [Param("y", ParamType.Number, "Point y.")]
     IValue PointMeeting(Exp.Instance? expinst, IValue?[] args)
     {
         // arguments
@@ -207,6 +217,9 @@ public partial interface IGame
     /// is either an instance to check against or an object type to test for collisions.</param>
     /// <returns>True if the placement would result in a collision; otherwise false.</returns>
     [ExpFunc(3, IsNonStaticFuncOfGameObjects = true)]
+    [Param("x", ParamType.Number, "Position x.")]
+    [Param("y", ParamType.Number, "Position y.")]
+    [Param("type", ParamType.Type, "The object type to check for collision with.")]
     BoolValue PlaceMeeting(Exp.Instance? expinst, IValue?[] args)
     {
         var inst = (Runtime.Instance)expinst!;
