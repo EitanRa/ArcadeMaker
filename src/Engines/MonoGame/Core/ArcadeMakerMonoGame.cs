@@ -480,13 +480,8 @@ namespace ArcadeMaker.Engines.MonoGame.Core
             Sprite sprite = Sprites.FirstOrDefault(s => s.ID == args[2].ThrowIfNull().Number) ?? throw new ArgumentException($"No sprite with ID '{args[2]}' found.");
             double imageIndex = args[3].ThrowIfNull().Number;
 
-            int angle = 0;
-            Color alpha = Color.White;
-            if (args.Length > 5)
-            {
-                angle = (int)args[4].ThrowIfNull().Number;
-                alpha = new Color((uint)args[5].ThrowIfNull().Number);
-            }
+            int angle = args.Length >= 5 ? (int)args[4].ThrowIfNull().Number : 0;
+            Color alpha = args.Length >= 6 ? new Color((uint)args[5].ThrowIfNull().Number) : Color.White;
 
             // get the texture region for the sprite and draw it
             MainTextureAtlas.GetRegion(sprite, (int)imageIndex)?.Draw(SpriteBatch, pos, alpha, (float)ArcadeMaker.Core.Math.Formulas.DegreesToRadians(angle), new(sprite.OriginX, sprite.OriginY), 1f, SpriteEffects.None, 0);

@@ -216,10 +216,10 @@ public partial interface IGame
     /// <param name="args">Arguments where args[0] and args[1] are the target X and Y coordinates and args[2]
     /// is either an instance to check against or an object type to test for collisions.</param>
     /// <returns>True if the placement would result in a collision; otherwise false.</returns>
-    [ExpFunc(3, IsNonStaticFuncOfGameObjects = true)]
+    [ExpFunc(2, 3, IsNonStaticFuncOfGameObjects = true)]
     [Param("x", ParamType.Number, "Position x.")]
     [Param("y", ParamType.Number, "Position y.")]
-    [Param("type", ParamType.Type, "The object type to check for collision with.")]
+    [Param("type", ParamType.Type + " / " + ParamType.GameObject, "The object type to check for collision with, or a reference for a spesific instance.", Optional = true)]
     BoolValue PlaceMeeting(Exp.Instance? expinst, IValue?[] args)
     {
         var inst = (Runtime.Instance)expinst!;
@@ -227,15 +227,11 @@ public partial interface IGame
         if (inst.Model.Sprite == null)
             return false;
 
-        // get params
-        if (args[2] == null)
-            return false;
-
         var x = args[0].ThrowIfNull().Number;
         var y = args[1].ThrowIfNull().Number;
 
         // if 3rd argument is an instance, only check it
-        if (args[2] is Runtime.Instance other)
+        if (args.Length >= 3 && args[2] is Runtime.Instance other)
             return PlaceMeeting(x, y, other);
 
         // if 3rd argument is a type, check all instances of that type
@@ -243,7 +239,7 @@ public partial interface IGame
         {
             foreach (var i in GetActivatedRoom().Instances)
             {
-                if (i.Model.Sprite != null && i.def.ExpType == args[2] && ((IValue)PlaceMeeting(x, y, i)).Bool)
+                if (args.Length == 2 || (i.Model.Sprite != null && i.def.ExpType == args[2] && ((IValue)PlaceMeeting(x, y, i)).Bool))
                     return true;
             }
             return false;
@@ -275,12 +271,15 @@ public partial interface IGame
     /// <param name="expinst">The calling runtime instance.</param>
     /// <param name="args">Arguments where args[0] and args[1] are the target X and Y coordinates and args[2] is the type to search for.</param>
     /// <returns>The first instance found that collides at the specified position, or null if none found.</returns>
-    [ExpFunc(1, IsNonStaticFuncOfGameObjects = true)]
+    [ExpFunc(2, 3, IsNonStaticFuncOfGameObjects = true)]
+    [Param("x", ParamType.Number, "Position x.")]
+    [Param("y", ParamType.Number, "Position y.")]
+    [Param("type", ParamType.Type, "The object type to check for collision with.", Optional = true)]
     Runtime.Instance? InstanceMeeting(Exp.Instance? expinst, IValue?[] args)
     {
         foreach (var other in GetActivatedRoom().Instances)
         {
-            if (other.Model.Class.ExpType == args[2] && PlaceMeeting(expinst, [args[0], args[1], other]))
+            if ((args.Length == 2 || other.Model.Class.ExpType == args[2]) && PlaceMeeting(expinst, [args[0], args[1], other]))
                 return other;
         }
 
@@ -294,6 +293,8 @@ public partial interface IGame
     /// <param name="args">Arguments where args[0] and args[1] are the target X and Y coordinates to test.</param>
     /// <returns>True if the position is free; otherwise false.</returns>
     [ExpFunc(2, IsNonStaticFuncOfGameObjects = true)]
+    [Param("x", ParamType.Number, "Position x.")]
+    [Param("y", ParamType.Number, "Position y.")]
     BoolValue PlaceFree(Exp.Instance? expinst, IValue?[] args)
     {
         foreach (var other in GetActivatedRoom().Instances.Where(i => i.Solid.Value!.Bool))
@@ -330,22 +331,21 @@ public partial interface IGame
     /// <param name="_"></param>
     /// <param name="args">(pointX, pointY, type (null for any)).</param>
     /// <returns>The nearest instance, or <c>null</c> if there is no any instance in the room.</returns>
-    /// <summary>
-    /// Returns the instance in the active room nearest to the provided point.
-    /// </summary>
-    /// <param name="_">The calling EXP instance (unused).</param>
-    /// <param name="args">Arguments where args[0] and args[1] are the point X and Y coordinates and args[2] is an optional type to filter by (null for any).</param>
-    /// <returns>The nearest instance or null if no matching instances exist.</returns>
-    [ExpFunc(3)]
+    [ExpFunc(2, 3)]
+    [Param("x", ParamType.Number, "Position x.")]
+    [Param("y", ParamType.Number, "Position y.")]
+    [Param("type", ParamType.Number, "The type to get its nearest instance.", Optional = true)]
     Runtime.Instance? NearestInstance(Exp.Instance? _, IValue?[] args)
     {
-        Extensions.ThrowIfNull(args[0], args[1]);
+        args[0].ThrowIfNull();
+        args[1].ThrowIfNull();
+        IValue? type = args.Length >= 3 ? args[2] : null;
 
         KeyValuePair<Runtime.Instance?, double> nearest = new(null, -1);
         bool first = true;
         foreach (var inst in GetActivatedRoom().Instances)
         {
-            if (args.Length >= 3 && (args[2] == null || args[2] == inst.Model.Class.ExpType))
+            if (type == null || type == inst.Model.Class.ExpType)
             {
                 double distance = Math.Formulas.DistanceBetween(args[0]!.Number, args[1]!.Number, inst.X.Value!.Number, inst.Y.Value!.Number);
                 if (first || distance < nearest.Value)
@@ -363,21 +363,19 @@ public partial interface IGame
     /// <param name="_"></param>
     /// <param name="args">(pointX, pointY, type (null for any)).</param>
     /// <returns>The furthest instance, or <c>null</c> if there is no any instance in the room.</returns>
-    /// <summary>
-    /// Returns the instance in the active room furthest from the provided point.
-    /// </summary>
-    /// <param name="_">The calling EXP instance (unused).</param>
-    /// <param name="args">Arguments where args[0] and args[1] are the point X and Y coordinates and args[2] is an optional type to filter by (null for any).</param>
-    /// <returns>The furthest instance or null if no matching instances exist.</returns>
-    [ExpFunc(3)]
+    [ExpFunc(2, 3)]
+    [Param("x", ParamType.Number, "Position x.")]
+    [Param("y", ParamType.Number, "Position y.")]
+    [Param("type", ParamType.Number, "The type to get its furthest instance.", Optional = true)]
     Runtime.Instance? FurthestInstance(Exp.Instance? _, IValue?[] args)
     {
         Extensions.ThrowIfNull(args[0], args[1]);
+        IValue? type = args.Length >= 3 ? args[2] : null;
 
         KeyValuePair<Runtime.Instance?, double> furthest = new(null, -1);
         foreach (var inst in GetActivatedRoom().Instances)
         {
-            if (args.Length >= 3 && (args[2] == null || args[2] == inst.Model.Class.ExpType))
+            if (type == null || type == inst.Model.Class.ExpType)
             {
                 double distance = Math.Formulas.DistanceBetween(args[0]!.Number, args[1]!.Number, inst.X.Value!.Number, inst.Y.Value!.Number);
                 if (distance > furthest.Value)
@@ -394,16 +392,14 @@ public partial interface IGame
     /// <param name="_">The calling EXP instance (unused).</param>
     /// <param name="args">Arguments where args[0] is the object type to count, or null to count all instances.</param>
     /// <returns>The number of matching instances as an <see cref="Exp.NumberValue"/>.</returns>
-    [ExpFunc(1)]
+    [ExpFunc(0, 1)]
+    [Param("type", ParamType.Type, "The type to count.", Optional = true)]
     IValue InstanceCount(Exp.Instance? _, IValue?[] args)
     {
-        if (args.Length == 0)
-            throw new ArgumentException("Object type (or null) must be passed.");
-
         int count = 0;
         foreach (var i in GetActivatedRoom().Instances)
         {
-            if (args[0] == null || args[0] == i.Model.Class.ExpType)
+            if (args.Length == 0 || args[0] == i.Model.Class.ExpType)
                 count++;
         }
 
@@ -416,6 +412,7 @@ public partial interface IGame
     /// <param name="_">The calling EXP instance (unused).</param>
     /// <param name="args">Arguments where args[0] is the message to show.</param>
     [ExpFunc(1)]
+    [Param("message?", ParamType.Any, "The message to show to the user.")]
     Exp.Void ShowMessage(Exp.Instance? _, IValue?[] args);
 
     /// <summary>
@@ -425,6 +422,9 @@ public partial interface IGame
     /// <param name="args">Arguments where args[0] and args[1] are the target X and Y coordinates and args[2] is the desired speed.</param>
     /// <returns>Void.</returns>
     [ExpFunc(3, IsNonStaticFuncOfGameObjects = true)]
+    [Param("x", ParamType.Number, "Position x.")]
+    [Param("y", ParamType.Number, "Position y.")]
+    [Param("speed", ParamType.Number, "Movement speed.")]
     Exp.Void MoveTowardsPoint(Exp.Instance? expinst, IValue?[] args)
     {
         var inst = (Runtime.Instance)expinst!;
@@ -445,7 +445,13 @@ public partial interface IGame
     /// </summary>
     /// <param name="_">The calling EXP instance (unused).</param>
     /// <param name="args">[x, y, spriteId, imageIndex, [angle, alphaColor]].</param>
-    [ExpFunc(4, 6)]
+    [ExpFunc(4, 5, 6)]
+    [Param("x", ParamType.Number, "Drawing position's x.")]
+    [Param("y", ParamType.Number, "Drawing position's y.")]
+    [Param("spriteID", ParamType.Number, "The ID of the sprite which contains the image to draw. Use 'Sprites' enum for that, e.g. Sprites.SprEnemy")]
+    [Param("imageIndex", ParamType.Number, "The index of the image to draw.")]
+    [Param("angle", ParamType.Number, "The angle to draw the image in.", Optional = true)]
+    [Param("alphaColor", ParamType.Number, "The alpha color mask.", Optional = true)]
     Exp.Void DrawSprite(Exp.Instance? _, IValue?[] args);
 
     /// <summary>
@@ -454,6 +460,9 @@ public partial interface IGame
     /// <param name="_">The calling EXP instance (unused).</param>
     /// <param name="args">[x, y, text?].</param>
     [ExpFunc(3)]
+    [Param("x", ParamType.Number, "Position x.")]
+    [Param("y", ParamType.Number, "Position y.")]
+    [Param("text?", ParamType.Any, "The text to draw.")]
     Exp.Void DrawText(Exp.Instance? _, IValue?[] args);
 
     /// <summary>
@@ -462,6 +471,7 @@ public partial interface IGame
     /// <param name="_">The calling EXP instance (unused).</param>
     /// <param name="args">[fontId].</param>
     [ExpFunc(1)]
+    [Param("fontID", ParamType.Number, "The ID of the font to set to. Use 'Fonts' enum for that, e.g. Fonts.FntTitle.")]
     Exp.Void SetFont(Exp.Instance? _, IValue?[] args);
 
     /// <summary>
@@ -470,21 +480,27 @@ public partial interface IGame
     /// <param name="_">The calling EXP instance (unused).</param>
     /// <param name="args">[abgrColor]. You can use the <see cref="ExpSrc.Drawing.Color"/> enum for this.</param>
     [ExpFunc(1)]
+    [Param("color", ParamType.Number, $"The color to set to, in ABGR format. You can use {nameof(ExpSrc.Drawing.Color)} enum for that.")]
     Exp.Void SetColor(Exp.Instance? _, IValue?[] args);
 
     /// <summary>
-    /// Draws a line between two points with the specified thickness.
+    /// Draws a line between two points.
     /// </summary>
     /// <param name="_">The calling EXP instance (unused).</param>
-    /// <param name="args">[x1, y1, x2, y2, lineThickness].</param>
-    [ExpFunc(5)]
+    /// <param name="args">(x1, y1, x2, y2, [lineThickness]).</param>
+    [ExpFunc(4, 5)]
+    [Param("x1", ParamType.Number, "Position 1 x.")]
+    [Param("y1", ParamType.Number, "Position 1 y.")]
+    [Param("x2", ParamType.Number, "Position 2 x.")]
+    [Param("y2", ParamType.Number, "Position 2 y.")]
+    [Param("thickness", ParamType.Number, "Line thickness.", Optional = true)]
     Exp.Void DrawLine(Exp.Instance? _, IValue?[] args)
     {
         double x1 = args[0].ThrowIfNull().Number;
         double y1 = args[1].ThrowIfNull().Number;
         double x2 = args[2].ThrowIfNull().Number;
         double y2 = args[3].ThrowIfNull().Number;
-        double thickness = args[4].ThrowIfNull().Number;
+        double thickness = args.Length >= 5 ? args[4].ThrowIfNull().Number : 1;
 
         DrawLine(x1, y1, x2, y2, thickness);
 
@@ -492,11 +508,15 @@ public partial interface IGame
     }
 
     /// <summary>
-    /// Draws a predefined path resource starting at the path's start position or an optional provided position.
+    /// Draws a path starting at the path's start position or an optional provided position.
     /// </summary>
     /// <param name="_">The calling EXP instance (unused).</param>
-    /// <param name="args">[pathId, [x, y], libeThickness].</param>
+    /// <param name="args">[pathId, [x, y], lineThickness].</param>
     [ExpFunc(2, 4)]
+    [Param("pathID", ParamType.Number, "The ID of the path to draw. Use 'Paths' enum for that.")]
+    [Param("x", ParamType.Number, "Position x.")]
+    [Param("y", ParamType.Number, "Position x.")]
+    [Param("lineThickness", ParamType.Number, "Line thickness.")]
     Exp.Void DrawPath(Exp.Instance? _, IValue?[] args)
     {
         // get parameters
@@ -529,6 +549,11 @@ public partial interface IGame
     /// <param name="args">[soundId, [looping], [volume], [pan], [pitch]].</param>
     /// <returns>A <see cref="Runtime.SoundPlaybackInstance{T}"/> instance can be used to control the playback.</returns>
     [ExpFunc(1, 2, 3, 4, 5)]
+    [Param("soundID", ParamType.Number, "The ID of the sound to play. Use 'Sounds' enum for that, e.g. Sounds.SndShooting.")]
+    [Param("looping", ParamType.Number, "Indicates whether the playback should automatically restart after it's finished.", Optional = true)]
+    [Param("volume", ParamType.Number, "The volume to play in.", Optional = true)]
+    [Param("pan", ParamType.Number, "The pan to play in.", Optional = true)]
+    [Param("pitch", ParamType.Number, "The pitch to play in.", Optional = true)]
     Exp.Instance? PlaySound(Exp.Instance? _, IValue?[] args);
 
     /// <summary>
@@ -537,6 +562,7 @@ public partial interface IGame
     /// <param name="_">The calling EXP instance (unused).</param>
     /// <param name="args">[soundId].</param>
     [ExpFunc(1)]
+    [Param("soundID", ParamType.Number, "The ID of the sound to pause. Use 'Sounds' enum for that, e.g. Sounds.SndShooting.")]
     Exp.Void PauseSound(Exp.Instance? _, IValue?[] args);
 
     /// <summary>
@@ -553,6 +579,7 @@ public partial interface IGame
     /// <param name="_">The calling EXP instance (unused).</param>
     /// <param name="args">[soundId].</param>
     [ExpFunc(1)]
+    [Param("soundID", ParamType.Number, "The ID of the sound to resume. Use 'Sounds' enum for that, e.g. Sounds.SndShooting.")]
     Exp.Void ResumeSound(Exp.Instance? _, IValue?[] args);
 
     /// <summary>
@@ -569,6 +596,10 @@ public partial interface IGame
     /// <param name="expinst">The calling runtime instance.</param>
     /// <param name="args">Arguments where args[0] is the path ID, args[1] is the movement speed, args[2] is the PathEndAction and args[3] is a boolean indicating if the instance should be moved to the path start before.</param>
     [ExpFunc(4, IsNonStaticFuncOfGameObjects = true)]
+    [Param("pathID", ParamType.Number, "The ID of the path to follow. Use 'Paths' enum for that, e.g. Paths.PthRoad.")]
+    [Param("speed", ParamType.Number, "Movement speed.")]
+    [Param("endAction", ParamType.PathEndAction, "What should happen when the path is completed.")]
+    [Param("absolute", ParamType.Bool, "Indicates wether the object should be taken to the path start position before the beginning, or start it from its current position.")]
     Exp.Void StartPath(Exp.Instance? expinst, IValue?[] args)
     {
         Runtime.Instance inst = (Runtime.Instance)expinst!;
@@ -619,6 +650,7 @@ public partial interface IGame
     /// <param name="args">Arguments where args[0] is the alarm index to retrieve.</param>
     /// <returns>The alarm value as a <see cref="NumberValue"/>.</returns>
     [ExpFunc(1, IsNonStaticFuncOfGameObjects = true)]
+    [Param("index", ParamType.Number, "The alarm index to retrieve.")]
     IValue GetAlarm(Exp.Instance? expinst, IValue?[] args)
     {
         return ((Runtime.Instance)expinst!).Alarm[(int)args[0].ThrowIfNull().Number].number.ToExp();
@@ -630,6 +662,8 @@ public partial interface IGame
     /// <param name="expinst">The calling runtime instance.</param>
     /// <param name="args">Arguments where args[0] is the alarm index and args[1] is the value to set.</param>
     [ExpFunc(2, IsNonStaticFuncOfGameObjects = true)]
+    [Param("index", ParamType.Number, "The alarm index to set.")]
+    [Param("value", ParamType.Number, "The value to set to.")]
     Exp.Void SetAlarm(Exp.Instance? expinst, IValue?[] args)
     {
         ((Runtime.Instance)expinst!).Alarm[(int)args[0].ThrowIfNull().Number].number = (int)args[1].ThrowIfNull().Number;
@@ -660,6 +694,7 @@ public partial interface IGame
     /// <param name="_">The calling EXP instance (unused).</param>
     /// <param name="args">Arguments where args[0] is the view index.</param>
     /// <returns>The view X position as a <see cref="NumberValue"/>.</returns>
+    [Param("index", ParamType.Number, "The index of view to get its x.")]
     [ExpFunc(1)]
     IValue GetViewX(Exp.Instance? _, IValue?[] args) => GetActivatedRoom().Model.Views[(int)args[0].ThrowIfNull().Number].X.ToExp();
 
@@ -670,6 +705,7 @@ public partial interface IGame
     /// <param name="args">Arguments where args[0] is the view index.</param>
     /// <returns>The view Y position as a <see cref="NumberValue"/>.</returns>
     [ExpFunc(1)]
+    [Param("index", ParamType.Number, "The index of view to get its y.")]
     IValue GetViewY(Exp.Instance? _, IValue?[] args) => GetActivatedRoom().Model.Views[(int)args[0].ThrowIfNull().Number].Y.ToExp();
 
     /// <summary>
@@ -679,6 +715,7 @@ public partial interface IGame
     /// <param name="args">Arguments where args[0] is the view index.</param>
     /// <returns>The view width as a <see cref="NumberValue"/>.</returns>
     [ExpFunc(1)]
+    [Param("index", ParamType.Number, "The index of view to get its width.")]
     IValue GetViewWidth(Exp.Instance? _, IValue?[] args) => GetActivatedRoom().Model.Views[(int)args[0].ThrowIfNull().Number].Width.ToExp();
 
     /// <summary>
@@ -688,6 +725,7 @@ public partial interface IGame
     /// <param name="args">Arguments where args[0] is the view index.</param>
     /// <returns>The view height a <see cref="NumberValue"/>.</returns>
     [ExpFunc(1)]
+    [Param("index", ParamType.Number, "The index of view to get its height.")]
     IValue GetViewHeight(Exp.Instance? _, IValue?[] args) => GetActivatedRoom().Model.Views[(int)args[0].ThrowIfNull().Number].Height.ToExp();
 
     /// <summary>
@@ -697,6 +735,7 @@ public partial interface IGame
     /// <param name="args">Arguments where args[0] is the view index.</param>
     /// <returns>The view port X position as a <see cref="NumberValue"/>.</returns>
     [ExpFunc(1)]
+    [Param("index", ParamType.Number, "The index of view to get its port x.")]
     IValue GetViewPortX(Exp.Instance? _, IValue?[] args) => GetActivatedRoom().Model.Views[(int)args[0].ThrowIfNull().Number].PortX.ToExp();
 
     /// <summary>
@@ -706,6 +745,7 @@ public partial interface IGame
     /// <param name="args">Arguments where args[0] is the view index.</param>
     /// <returns>The view port Y position as a <see cref="NumberValue"/>.</returns>
     [ExpFunc(1)]
+    [Param("index", ParamType.Number, "The index of view to get its port y.")]
     IValue GetViewPortY(Exp.Instance? _, IValue?[] args) => GetActivatedRoom().Model.Views[(int)args[0].ThrowIfNull().Number].PortY.ToExp();
 
     /// <summary>
@@ -715,6 +755,7 @@ public partial interface IGame
     /// <param name="args">Arguments where args[0] is the view index.</param>
     /// <returns>The view port width as a <see cref="NumberValue"/>.</returns>
     [ExpFunc(1)]
+    [Param("index", ParamType.Number, "The index of view to get its port width.")]
     IValue GetViewPortWidth(Exp.Instance? _, IValue?[] args) => GetActivatedRoom().Model.Views[(int)args[0].ThrowIfNull().Number].PortWidth.ToExp();
 
     /// <summary>
@@ -724,5 +765,6 @@ public partial interface IGame
     /// <param name="args">Arguments where args[0] is the view index.</param>
     /// <returns>The view port height as a <see cref="NumberValue"/>.</returns>
     [ExpFunc(1)]
+    [Param("index", ParamType.Number, "The index of view to get its port height.")]
     IValue GetViewPortHeight(Exp.Instance? _, IValue?[] args) => GetActivatedRoom().Model.Views[(int)args[0].ThrowIfNull().Number].PortHeight.ToExp();
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ArcadeMaker.Core.Resources;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -31,4 +32,9 @@ public static class ParamType
     public const string Key = nameof(Controls.Keys);
     public const string MouseButton = nameof(Controls.MouseButton);
     public const string GamepadButton = nameof(Controls.GamepadButton);
+    public const string PathEndAction = nameof(Resources.PathEndAction);
+    public const string GameObject = "Game Object";
+
+    // others
+    public const string Any = "any";
 }
