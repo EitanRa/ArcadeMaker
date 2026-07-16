@@ -1,29 +1,31 @@
+using ArcadeMaker.Core;
+using ArcadeMaker.Core.ExpSrc;
+using ArcadeMaker.Core.Models;
+using ArcadeMaker.Core.Resources;
+using ArcadeMaker.Core.Resources.Serializeables;
+using ArcadeMaker.Core.Runtime;
+using ArcadeMaker.Engines.MonoGame.Core.Graphics;
 using ArcadeMaker.Engines.MonoGame.Core.Localization;
+using Exp;
+using Exp.Spans;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Media;
+using MonoGame.Extended;
+using MonoGame.Extended.ViewportAdapters;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using static System.Net.Mime.MediaTypeNames;
-using ArcadeMaker.Core;
-using ArcadeMaker.Core.Models;
-using ArcadeMaker.Core.Runtime;
-using Microsoft.Xna.Framework.Content;
-using Exp;
-using ArcadeMaker.Core.Resources;
-using ArcadeMaker.Engines.MonoGame.Core.Graphics;
-using ArcadeMaker.Core.ExpSrc;
-using ArcadeMaker.Core.Resources.Serializeables;
-using Microsoft.Xna.Framework.Audio;
-using Microsoft.Xna.Framework.Media;
-using System.Linq;
-using Exp.Spans;
-using System.Reflection;
-using MonoGame.Extended;
-using MonoGame.Extended.ViewportAdapters;
-using System.Runtime.CompilerServices;
 using System.IO;
+using System.IO.Pipes;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using static System.Net.Mime.MediaTypeNames;
+using Pose;
 
 namespace ArcadeMaker.Engines.MonoGame.Core
 {
@@ -76,11 +78,16 @@ namespace ArcadeMaker.Engines.MonoGame.Core
         }
         public TextureAtlasMap MainTextureAtlasMap { get; set; }
         public TextureAtlas MainTextureAtlas { get; private set; }
+        public string MainTextureAtlasFilePath { get; set; }
 
         public StringWriter Debug { get; } = new StringWriter();
 
         // runtime private data
         private GameRunner<ArcadeMakerMonoGame> GameRunner { get; set; }
+
+        // project file info
+        private string ProjectFilePath { get; }
+        private string ProjectFileDir => System.IO.Path.GetDirectoryName(ProjectFilePath)!;
 
         /// <summary>
         /// Indicates if the game is running on a mobile platform.
@@ -99,10 +106,12 @@ namespace ArcadeMaker.Engines.MonoGame.Core
         /// </summary>
         public ArcadeMakerMonoGame(string projectFile)
         {
+            this.ProjectFilePath = projectFile;
+
             graphicsDeviceManager = new GraphicsDeviceManager(this);
 
             // share GraphicsDeviceManager as a service.
-            Services.AddService(typeof(GraphicsDeviceManager), graphicsDeviceManager);
+            Services.AddService(graphicsDeviceManager);
 
             Content.RootDirectory = "Content";
 
@@ -137,11 +146,15 @@ namespace ArcadeMaker.Engines.MonoGame.Core
 
             SpriteBatch = new SpriteBatch(GraphicsDevice);
 
-            Try(() =>
+            try
             {
                 GameRunner = new GameRunner<ArcadeMakerMonoGame>(this);
                 GameRunner.Run(invokeInit: false);
-            });
+            }
+            catch (Exception ex)
+            {
+                CatchException(ex);
+            }
         }
 
         public void Init() => Initialize();
@@ -151,26 +164,35 @@ namespace ArcadeMaker.Engines.MonoGame.Core
         /// </summary>
         protected override void LoadContent()
         {
-            Try(() =>
+            List<Stream> openedStreams = [];
+            Stream? OpenStream(string key, bool isText = false)
+            {
+                var stream = SerializeableGameProject.OpenStream(ProjectFilePath, key, isText);
+                if (stream != null)
+                    openedStreams.Add(stream);
+                return stream;
+            }
+
+            try
             {
                 base.LoadContent();
 
                 // load background textures
-                Backgrounds.ForEach(bg => { if (bg.FilePath != null) BackgroundTextures.Add(bg, Texture2D.FromFile(GraphicsDevice, bg.FilePath)); });
+                Backgrounds.ForEach(bg => { if (bg.FilePath != null) BackgroundTextures.Add(bg, Texture2D.FromStream(GraphicsDevice, OpenStream(bg.FilePath))); });
 
                 // load fonts
                 Fonts.All.Clear();
                 Fonts.Current = null;
                 foreach (var fontd in FontsData)
                 {
-                    var spriteFont = Fonts.FromGameFont(fontd, GraphicsDevice);
+                    var spriteFont = Fonts.FromGameFont(ProjectFilePath, fontd, GraphicsDevice);
                     Fonts.All.Add(fontd, spriteFont);
                 }
                 if (Fonts.All.Count > 0)
                     Fonts.Current = Fonts.All.Values.First();
 
                 // load main texture atlas
-                var mainAtlasTexture = Texture2D.FromFile(GraphicsDevice, MainTextureAtlasMap.AtlasFilePath);
+                var mainAtlasTexture = Texture2D.FromStream(GraphicsDevice, OpenStream(MainTextureAtlasFilePath));
                 MainTextureAtlas = new(mainAtlasTexture);
                 foreach (var item in MainTextureAtlasMap.Items)
                     MainTextureAtlas.AddRegion(Sprites.First(sprite => sprite.Name == item.SpriteName), item.ImageIndex, item.X, item.Y, item.W, item.H);
@@ -182,12 +204,32 @@ namespace ArcadeMaker.Engines.MonoGame.Core
                     {
                         if (sound.Type == Sound.Types.SoundEffect)
                         {
-                            var effect = SoundEffect.FromFile(sound.FilePath);
+                            var effect = SoundEffect.FromStream(OpenStream(sound.FilePath));
                             soundEffects.Add(sound, effect);
                         }
                         else if (sound.Type == Sound.Types.BackgroundMusic)
                         {
-                            var song = Song.FromUri(sound.Name, new Uri(sound.FilePath, UriKind.Absolute));
+                            Song? song = null;
+
+                            // create a dynamic redirection rule (Shim)
+                            // "Whenever File.OpenRead is called with any string, run this delegate instead"
+                            Shim fileShim = 
+                                Shim.Replace(() => File.OpenRead(Is.A<string>()))
+                                    .With((string path) => {
+                                        return OpenStream(path);
+                                    });
+
+                            // isolate execution. inside this block, the rule is active
+                            // outside the block, File.OpenRead reverts to normal PC behavior
+                            PoseContext.Isolate(() =>
+                            {
+                                song = Song.FromUri(sound.Name, new Uri(System.IO.Path.Combine(ProjectFilePath, sound.FilePath), UriKind.Absolute));
+
+                            }, fileShim); // Pass the shim rule into the environment
+
+                            if (song is null)
+                                throw new Exception("Background music loading failed.");
+
                             backgroundMusics.Add(sound, song);
                         }
                     }
@@ -196,25 +238,27 @@ namespace ArcadeMaker.Engines.MonoGame.Core
                         throw new ArgumentException($"Error loading sound {sound.Name}: {ex.Message}.");
                     }
                 }
-            });
+            }
+            catch (Exception ex)
+            {
+                CatchException(ex);
+            }
+            finally
+            {
+                openedStreams.ForEach(s => s.Dispose());
+            }
         }
 
         private bool isOnError;
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void Try(Action action) // TODO: consider using a more efficient way to handle this, as this might cause performance issues when used in Update and Draw methods.
+        private void CatchException(Exception ex)
         {
-            try
-            {
-                action();
-            }
-            catch (RuntimeException ex)
+            if (ex is RuntimeException rex)
             {
                 isOnError = true;
-                OnExpRuntimeError?.Invoke(this, ex);
+                OnExpRuntimeError?.Invoke(this, rex);
                 isOnError = false;
             }
-            catch (Exception ex) when (true)
+            else
             {
                 isOnError = true;
                 OnCsError?.Invoke(this, ex);
@@ -241,7 +285,14 @@ namespace ArcadeMaker.Engines.MonoGame.Core
             Gamepad4State = GamePad.GetState(PlayerIndex.Four);
             MouseState    = Mouse.GetState();
 
-            Try(GameRunner.FireStep);
+            try
+            {
+                GameRunner.FireStep();
+            }
+            catch (Exception ex)
+            {
+                CatchException(ex);
+            }
 
             // save input state
             PrevKeyboardState = KeyboardState;
@@ -296,7 +347,14 @@ namespace ArcadeMaker.Engines.MonoGame.Core
 
                         SpriteBatch.Begin(transformMatrix: transformMatrix);
 
-                        Try(GameRunner.FireDraw);
+                        try
+                        {
+                            GameRunner.FireDraw();
+                        }
+                        catch (Exception ex)
+                        {
+                            CatchException(ex);
+                        }
 
                         SpriteBatch.End();
 
@@ -314,7 +372,14 @@ namespace ArcadeMaker.Engines.MonoGame.Core
 
                 SpriteBatch.Begin();
 
-                Try(GameRunner.FireDraw);
+                try
+                {
+                    GameRunner.FireDraw();
+                }
+                catch (Exception ex)
+                {
+                    CatchException(ex);
+                }
 
                 SpriteBatch.End();
             }
@@ -355,13 +420,15 @@ namespace ArcadeMaker.Engines.MonoGame.Core
 
             Vector2 position = new((float)inst.X.Value!.Number, (float)inst.Y.Value!.Number);
             Vector2 origin = new(inst.Model.Sprite.OriginX, inst.Model.Sprite.OriginY);
-            Vector2 scale = new((float)inst.ImageXScale.Value.Number, (float)inst.ImageYScale.Value.Number);
+            Vector2 scale = new((float)inst.ImageXScale.Value!.Number, (float)inst.ImageYScale.Value!.Number);
+
+            // TODO: validate visibilty as a condition for drawing, respecting scale
             
-            MainTextureAtlas.GetRegion(inst.Model.Sprite, (int)inst.ImageIndex.Value.Number)?.Draw(
+            MainTextureAtlas.GetRegion(inst.Model.Sprite, (int)inst.ImageIndex.Value!.Number)?.Draw(
                 SpriteBatch,
                 position,
                 Color.White,
-                (float)ArcadeMaker.Core.Math.Formulas.DegreesToRadians(inst.ImageAngle.Value.Number),
+                (float)ArcadeMaker.Core.Math.Formulas.DegreesToRadians(inst.ImageAngle.Value!.Number),
                 origin,
                 scale,
                 SpriteEffects.None,

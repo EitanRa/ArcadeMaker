@@ -625,15 +625,15 @@ namespace ArcadeMaker.IDE
 
         private static void SaveProject(bool saveAs = false)
         {
-            string rootFolder; // the folder to which we want to save the full project folder, e.g. Desktop
             string projectName = Environment.project.name;
 
             saveAs = saveAs || Environment.project.projectFilePath == null;
+            string path;
             if (saveAs)
             {
                 using SaveFileDialog dialog = new();
-                dialog.Filter = $"{Global.ProgramName} Project|*.gsp";
-                if (Environment.project.projectFilePath != null)
+                dialog.Filter = $"{Global.ProgramName} Project|*{GameProject.FileFormats.ArcadeMakerProject}|{Global.ProgramName} Bundled Project|*{GameProject.FileFormats.ArcadeMakerBundledProject}";
+                if (Environment.project.name != null)
                     dialog.FileName = Environment.project.name;
                 else
                 {
@@ -642,35 +642,15 @@ namespace ArcadeMaker.IDE
                 }
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
-                    string loc = dialog.FileName;
-                    if (!string.IsNullOrWhiteSpace(loc))
-                    {
-                        Environment.project.name = loc.FileNameWithoutExtension();
-                        rootFolder = loc.FileLocation();
-                    }
-                    else
-                    {
-                        var res = MessageBox.Show("Something went wrong. Would you like to insert path directly?", "Error", MessageBoxButtons.YesNo);
-                        if (res == DialogResult.Yes)
-                        {
-                            loc = Microsoft.VisualBasic.Interaction.InputBox("Location to save the project to:");
-                            Environment.project.name = loc.FileNameWithoutExtension();
-                            rootFolder = loc.FileLocation();
-                        }
-                        else return;
-                    }
+                    path = dialog.FileName;
+                    Environment.project.name = path.FileNameWithoutExtension();
                 }
                 else return;
             }
             else
-                rootFolder = Environment.project.projectFilePath!.FileLocation().FileLocation(); // when dialog appears, the selected location is used to save the root folder containing the .gsp file.
-                                                                                                 // so given the path of the .gsp, first FileLocation() would return the root folder,
-                                                                                                 // and second would return the folder that was selected in
-                                                                                                 // the dialog when the project was first saved.
-            
-            if (Environment.project.projectFilePath != null && string.IsNullOrWhiteSpace(Environment.project.name))
-                Environment.project.name = Environment.project.projectFilePath.FileNameWithoutExtension();
-            Environment.project.Save(rootFolder);
+                path = Environment.project.projectFilePath!;
+
+            Environment.project.Save(path);
         }
 
         // make the toolstrip enabled with 1 click when form is not focused
@@ -679,7 +659,7 @@ namespace ArcadeMaker.IDE
             int WM_PARENTNOTIFY = 0x0210;
             if (!this.Focused && m.Msg == WM_PARENTNOTIFY)
             {
-                // Make this form auto-grab the focus when menu/controls are clicked
+                // make this form auto-grab the focus when menu / controls are clicked
                 this.Activate();
             }
             base.WndProc(ref m);
@@ -690,7 +670,7 @@ namespace ArcadeMaker.IDE
             Environment.project = new GameProject("escape_equal_names");
 
             OpenFileDialog fileDialog = new OpenFileDialog();
-            fileDialog.Filter = "GameStudio Projects|*.gsp";
+            fileDialog.Filter = $"{Global.ProgramName} Projects|*{GameProject.FileFormats.ArcadeMakerProject};*{GameProject.FileFormats.ArcadeMakerBundledProject}";
             if (fileDialog.ShowDialog() == DialogResult.OK)
             {
                 OpenProject(GameProject.Open(fileDialog.FileName, out object[] pTree), pTree);

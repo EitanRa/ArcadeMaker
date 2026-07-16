@@ -17,11 +17,53 @@ public interface IContainsScript
 
 public class SerializeableGameProject
 {
+    public const string FileFormat_AMP  = ".amp";
+    public const string FileFormat_AMPB = ".ampb";
     public string name;
     public SerializeableGameItem[] items;
     public AssemblyReference[] userAssemblies;
     public SerializeableGameProjectTreeNode[] treeMainNodes;
     public TextureAtlasMap textureAtlasMap;
+
+    public static Stream? OpenStream(string path, string key, bool isText)
+    {
+        bool bundled = System.IO.Path.GetExtension(path) switch
+        {
+            FileFormat_AMP => false,
+            FileFormat_AMPB => true,
+            _ => throw new ArgumentException("Unsupported project file.", nameof(path))
+        };
+
+        if (bundled)
+        {
+            // create resource reader
+            using FileStream resFileStream = File.OpenRead(path);
+            using System.Resources.NetStandard.ResXResourceReader resReader = new(resFileStream);
+
+            // search the key
+            var dictionary = resReader.GetEnumerator();
+            while (dictionary.MoveNext())
+            {
+                if (key.Equals(dictionary.Key))
+                {
+                    // create a stream
+                    if (dictionary.Value is string str)
+                        return new MemoryStream(isText ? Encoding.Unicode.GetBytes(str) : Convert.FromBase64String(str));
+
+                    if (dictionary.Value == null)
+                        return null;
+
+                    throw new Exception($"The value in the given key was not a byte array or string, but " + dictionary.Value.GetType());
+                }
+            }
+
+            throw new KeyNotFoundException("Key '" + key + "' was not found in resources file.");
+        }
+        else
+        {
+            return File.OpenRead(System.IO.Path.GetDirectoryName(path) + (key.StartsWith('\\') ? "" : "\\") + key);
+        }
+    }
 }
 
 public class SerializeableGameProjectTreeNode

@@ -107,13 +107,14 @@ namespace ArcadeMaker.IDE
                 return;
             }
 
-            string debugPath = AppDomain.CurrentDomain.BaseDirectory + "\\DEBUG";
-            const string debugPname = "debugbuild";
-            project.Save(debugPath, successMsg: false, fileName: debugPname);
+            string debugPath = AppDomain.CurrentDomain.BaseDirectory + $"\\DEBUG";
+            Directory.CreateDirectory(debugPath);
+            debugPath += "\\debugbuild" + GameProject.FileFormats.ArcadeMakerBundledProject;
+            project.Save(debugPath, successMsg: false);
             Progress = 50;
             isGameRunning = true;
 
-            Engines.MonoGame.Platforms.WindowsDX.Program.Main([debugPath + $@"\{debugPname}\{debugPname}.gsp"]);
+            Engines.MonoGame.Platforms.WindowsDX.Program.Main([debugPath]);
 
             Progress = 100;
             isGameRunning = false;
