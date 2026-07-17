@@ -5,6 +5,7 @@ using Exp.Spans;
 using System;
 using System.Collections.Generic;
 using System.Reflection.Metadata;
+using System.Resources.NetStandard;
 using System.Text;
 using System.Xml.Serialization;
 

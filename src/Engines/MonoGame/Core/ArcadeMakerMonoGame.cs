@@ -25,7 +25,6 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using static System.Net.Mime.MediaTypeNames;
-using Pose;
 
 namespace ArcadeMaker.Engines.MonoGame.Core
 {
@@ -209,26 +208,38 @@ namespace ArcadeMaker.Engines.MonoGame.Core
                         }
                         else if (sound.Type == Sound.Types.BackgroundMusic)
                         {
-                            Song? song = null;
+                            string relativeUri = sound.FilePath;
 
-                            // create a dynamic redirection rule (Shim)
-                            // "Whenever File.OpenRead is called with any string, run this delegate instead"
-                            Shim fileShim = 
-                                Shim.Replace(() => File.OpenRead(Is.A<string>()))
-                                    .With((string path) => {
-                                        return OpenStream(path);
-                                    });
-
-                            // isolate execution. inside this block, the rule is active
-                            // outside the block, File.OpenRead reverts to normal PC behavior
-                            PoseContext.Isolate(() =>
+                            // if it's a bundled project file, we must save the sound to the file system
+                            if (ProjectFilePath.EndsWith(SerializeableGameProject.FileFormat_AMPB))
                             {
-                                song = Song.FromUri(sound.Name, new Uri(System.IO.Path.Combine(ProjectFilePath, sound.FilePath), UriKind.Absolute));
+                                relativeUri = "." + System.IO.Path.GetFileName(sound.FilePath);
 
-                            }, fileShim); // Pass the shim rule into the environment
+                                // make sure this name is free
+                                while (File.Exists(ProjectFileDir + '\\' + relativeUri))
+                                    relativeUri = "." + relativeUri;
 
-                            if (song is null)
-                                throw new Exception("Background music loading failed.");
+                                // save the sound file with FileOptions.DeleteOnClose, which is an OS-level approach that ensures that
+                                // the file is been deleted when closing the stream. this means we need to allow multiple file handles,
+                                // so MonoGame's Song.FromUri(...) method will open the file BEFORE we close it, and we'll only close
+                                // it when closing the game (if we won't close it manually, the OS will close it for us, so it's OK
+                                try
+                                {
+                                    string absPath = ProjectFileDir + '\\' + relativeUri;
+                                    using Stream soundMemoryStream = OpenStream(sound.FilePath)!;
+                                    FileStream soundFileStream = new FileStream(absPath, FileMode.CreateNew, FileAccess.Write, FileShare.Read, 4096, FileOptions.DeleteOnClose); // 4096 is default buffer size
+                                    openedSongFilesStreams.Add(soundFileStream);
+                                    File.SetAttributes(absPath, FileAttributes.Hidden); // mark the file as hidden
+                                    soundMemoryStream.CopyTo(soundFileStream);
+                                }
+                                catch (Exception ex) when (ex is not NullReferenceException)
+                                {
+                                    throw new Exception($"Background music could not be loaded because this requires saving the sound file and this operation has failed (Error: {ex.Message}).");
+                                }
+                            }
+
+                            string finalUri = ProjectFileDir + (relativeUri.StartsWith('\\') ? "" : "\\") + relativeUri;
+                            Song song = Song.FromUri(sound.Name, new Uri(finalUri, UriKind.Absolute));
 
                             backgroundMusics.Add(sound, song);
                         }
@@ -605,6 +616,7 @@ namespace ArcadeMaker.Engines.MonoGame.Core
             backgroundMusics.ForEach(bm => { if (!bm.Value.IsDisposed) bm.Value.Dispose(); });
             soundEffectInstances.Values.ForEach(ls => ls.ForEach(sei => { if (!sei.IsDisposed) sei.Dispose(); }));
             soundEffects.ForEach(se => { if (!se.Value.IsDisposed) se.Value.Dispose(); });
+            openedSongFilesStreams.ForEach(fileStream => fileStream.Dispose());
 
             // dispose textures
             BackgroundTextures.ForEach(tex => { if (!tex.Value.IsDisposed) tex.Value.Dispose(); });

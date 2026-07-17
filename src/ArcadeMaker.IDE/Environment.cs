@@ -109,7 +109,7 @@ namespace ArcadeMaker.IDE
 
             string debugPath = AppDomain.CurrentDomain.BaseDirectory + $"\\DEBUG";
             Directory.CreateDirectory(debugPath);
-            debugPath += "\\debugbuild" + GameProject.FileFormats.ArcadeMakerBundledProject;
+            debugPath += "\\debugbuild" + GameProject.FileFormats.ArcadeMakerProject;
             project.Save(debugPath, successMsg: false);
             Progress = 50;
             isGameRunning = true;
@@ -118,6 +118,11 @@ namespace ArcadeMaker.IDE
 
             Progress = 100;
             isGameRunning = false;
+        }
+
+        private static void AppendResourcesToExe()
+        {
+
         }
     }
 }
