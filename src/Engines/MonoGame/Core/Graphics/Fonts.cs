@@ -37,5 +37,10 @@ namespace ArcadeMaker.Engines.MonoGame.Core.Graphics
         {
             return FromStream(SerializeableGameProject.OpenStream(projectFilePath, gameFont.ttf, false)!, gameFont.size, graphicsDevice);
         }
+
+        internal static SpriteFont FromGameFont(Stream bundledProjectFilePath, GameFont gameFont, GraphicsDevice graphicsDevice)
+        {
+            return FromStream(SerializeableGameProject.OpenStream(bundledProjectFilePath, gameFont.ttf, false)!, gameFont.size, graphicsDevice);
+        }
     }
 }

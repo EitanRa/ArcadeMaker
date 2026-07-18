@@ -1,16 +1,17 @@
-﻿using System;
+﻿using ArcadeMaker.IDE.Items;
+using Microsoft.CSharp;
+using Mono.Cecil;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Resources;
 using System.Text;
 using System.Threading.Tasks;
-using System.IO;
-using Microsoft.CSharp;
-using System.Diagnostics;
-using System.Reflection;
 using System.Windows.Forms;
-using System.Drawing;
-using System.Resources;
-using ArcadeMaker.IDE.Items;
 
 namespace ArcadeMaker.IDE
 {
@@ -91,12 +92,20 @@ namespace ArcadeMaker.IDE
 
         private const string EngineDllResName = "engine.dll";
         internal static bool isGameRunning = false;
-        public static void GenerateExe(string savePath = null, bool run = false, bool console = true)
+        public static void GenerateExe(string? savePath = null, bool run = false, bool console = true)
         {
             IEnumerable<GameRoom> rooms = project.items.OfType<GameRoom>();
             if (!rooms.Any())
             {
                 MessageBox.Show("Game must have at least 1 room.");
+                return;
+            }
+
+            if (!run && savePath == null)
+            {
+#if DEBUG
+                ArgumentNullException.ThrowIfNull(savePath);
+#endif
                 return;
             }
 
@@ -109,20 +118,43 @@ namespace ArcadeMaker.IDE
 
             string debugPath = AppDomain.CurrentDomain.BaseDirectory + $"\\DEBUG";
             Directory.CreateDirectory(debugPath);
-            debugPath += "\\debugbuild" + GameProject.FileFormats.ArcadeMakerProject;
+            debugPath += "\\debugbuild" + GameProject.FileFormats.ArcadeMakerBundledProject;
             project.Save(debugPath, successMsg: false);
             Progress = 50;
             isGameRunning = true;
 
-            Engines.MonoGame.Platforms.WindowsDX.Program.Main([debugPath]);
+            if (run)
+                Engines.MonoGame.Platforms.WindowsDX.Program.Main([debugPath]);
+            else
+            {
+                string dll_winDX = typeof(Engines.MonoGame.Platforms.WindowsDX.Program).Assembly.Location;
+                using FileStream projectFileStream = File.OpenRead(debugPath);
+                EmbedResourceFileToExe(dll_winDX, projectFileStream, savePath!);
+            }
 
             Progress = 100;
             isGameRunning = false;
         }
 
-        private static void AppendResourcesToExe()
+        private static void EmbedResourceFileToExe(string exePath, Stream data, string saveAs)
         {
+            using var assembly = AssemblyDefinition.ReadAssembly(exePath);
 
+            // create the EmbeddedResource
+            var resource = new EmbeddedResource(
+                Engines.MonoGame.Platforms.WindowsDX.Program.RESOURCES_FILE_NAME,
+                Mono.Cecil.ManifestResourceAttributes.Public,
+                data
+            );
+
+            // add the resource to the module and save
+            assembly.MainModule.Resources.Add(resource);
+
+            // strip the public key to prevent strong-name validation failures
+            assembly.Name.PublicKey = null;
+            assembly.MainModule.Attributes &= ~ModuleAttributes.StrongNameSigned;
+
+            assembly.Write(saveAs);
         }
     }
 }

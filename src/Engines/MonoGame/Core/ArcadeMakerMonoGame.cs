@@ -38,7 +38,7 @@ namespace ArcadeMaker.Engines.MonoGame.Core
         public event EventHandler<Exception>? OnCsError;
 
         // resources
-        private readonly GraphicsDeviceManager graphicsDeviceManager;
+        private GraphicsDeviceManager graphicsDeviceManager = null!;
         private SpriteBatch SpriteBatch { get; set; } = null!;
         public List<Sprite> Sprites { get; } = [];
         private Dictionary<Background, Texture2D?> BackgroundTextures { get; } = [];
@@ -85,8 +85,9 @@ namespace ArcadeMaker.Engines.MonoGame.Core
         private GameRunner<ArcadeMakerMonoGame> GameRunner { get; set; }
 
         // project file info
-        private string ProjectFilePath { get; }
-        private string ProjectFileDir => System.IO.Path.GetDirectoryName(ProjectFilePath)!;
+        private string? ProjectFilePath { get; }
+        private string? ProjectFileDir => System.IO.Path.GetDirectoryName(ProjectFilePath)!;
+        private Stream? BundledProjectFileStream { get; }
 
         /// <summary>
         /// Indicates if the game is running on a mobile platform.
@@ -98,15 +99,33 @@ namespace ArcadeMaker.Engines.MonoGame.Core
         /// </summary>
         public readonly static bool IsDesktop = OperatingSystem.IsMacOS() || OperatingSystem.IsLinux() || OperatingSystem.IsWindows();
 
+        public ArcadeMakerMonoGame(Stream bundledProjectFileStream)
+        {
+            this.BundledProjectFileStream = bundledProjectFileStream;
+            Setup();
+
+            // load game data
+            ((IGame)this).LoadFromProjectFile(bundledProjectFileStream, null);
+
+            bundledProjectFileStream.Position = 0;
+        }
+
+        public ArcadeMakerMonoGame(string projectFilePath)
+        {
+            this.ProjectFilePath = projectFilePath;
+            Setup();
+
+            // load game data
+            ((IGame)this).LoadFromProjectFile(null, projectFilePath);
+        }
+
         /// <summary>
         /// Initializes a new instance of the game. Configures platform-specific settings, 
         /// initializes services like settings and leaderboard managers, and sets up the 
         /// screen manager for screen transitions.
         /// </summary>
-        public ArcadeMakerMonoGame(string projectFile)
+        private void Setup()
         {
-            this.ProjectFilePath = projectFile;
-
             graphicsDeviceManager = new GraphicsDeviceManager(this);
 
             // share GraphicsDeviceManager as a service.
@@ -116,9 +135,6 @@ namespace ArcadeMaker.Engines.MonoGame.Core
 
             // configure screen orientations.
             graphicsDeviceManager.SupportedOrientations = DisplayOrientation.LandscapeLeft | DisplayOrientation.LandscapeRight;
-
-            // load game data
-            ((IGame)this).LoadFromProjectFile(projectFile);
         }
 
         /// <summary>
@@ -166,9 +182,13 @@ namespace ArcadeMaker.Engines.MonoGame.Core
             List<Stream> openedStreams = [];
             Stream? OpenStream(string key, bool isText = false)
             {
-                var stream = SerializeableGameProject.OpenStream(ProjectFilePath, key, isText);
+                BundledProjectFileStream?.Position = 0;
+                var stream = BundledProjectFileStream == null ?
+                    SerializeableGameProject.OpenStream(ProjectFilePath!, key, isText) :
+                    SerializeableGameProject.OpenStream(BundledProjectFileStream, key, isText);
                 if (stream != null)
                     openedStreams.Add(stream);
+                BundledProjectFileStream?.Position = 0;
                 return stream;
             }
 
@@ -184,7 +204,7 @@ namespace ArcadeMaker.Engines.MonoGame.Core
                 Fonts.Current = null;
                 foreach (var fontd in FontsData)
                 {
-                    var spriteFont = Fonts.FromGameFont(ProjectFilePath, fontd, GraphicsDevice);
+                    var spriteFont = BundledProjectFileStream == null ? Fonts.FromGameFont(ProjectFilePath!, fontd, GraphicsDevice) : Fonts.FromGameFont(BundledProjectFileStream, fontd, GraphicsDevice);
                     Fonts.All.Add(fontd, spriteFont);
                 }
                 if (Fonts.All.Count > 0)
@@ -209,14 +229,16 @@ namespace ArcadeMaker.Engines.MonoGame.Core
                         else if (sound.Type == Sound.Types.BackgroundMusic)
                         {
                             string relativeUri = sound.FilePath;
+                            string tmpDir = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
+                            bool bundled = BundledProjectFileStream != null || ProjectFilePath!.EndsWith(SerializeableGameProject.FileFormat_AMPB);
 
                             // if it's a bundled project file, we must save the sound to the file system
-                            if (ProjectFilePath.EndsWith(SerializeableGameProject.FileFormat_AMPB))
+                            if (bundled)
                             {
                                 relativeUri = "." + System.IO.Path.GetFileName(sound.FilePath);
 
                                 // make sure this name is free
-                                while (File.Exists(ProjectFileDir + '\\' + relativeUri))
+                                while (File.Exists(tmpDir + '\\' + relativeUri))
                                     relativeUri = "." + relativeUri;
 
                                 // save the sound file with FileOptions.DeleteOnClose, which is an OS-level approach that ensures that
@@ -225,7 +247,7 @@ namespace ArcadeMaker.Engines.MonoGame.Core
                                 // it when closing the game (if we won't close it manually, the OS will close it for us, so it's OK
                                 try
                                 {
-                                    string absPath = ProjectFileDir + '\\' + relativeUri;
+                                    string absPath = tmpDir + '\\' + relativeUri;
                                     using Stream soundMemoryStream = OpenStream(sound.FilePath)!;
                                     FileStream soundFileStream = new FileStream(absPath, FileMode.CreateNew, FileAccess.Write, FileShare.Read, 4096, FileOptions.DeleteOnClose); // 4096 is default buffer size
                                     openedSongFilesStreams.Add(soundFileStream);
@@ -238,7 +260,7 @@ namespace ArcadeMaker.Engines.MonoGame.Core
                                 }
                             }
 
-                            string finalUri = ProjectFileDir + (relativeUri.StartsWith('\\') ? "" : "\\") + relativeUri;
+                            string finalUri = (bundled ? tmpDir : ProjectFileDir) + (relativeUri.StartsWith('\\') ? "" : "\\") + relativeUri;
                             Song song = Song.FromUri(sound.Name, new Uri(finalUri, UriKind.Absolute));
 
                             backgroundMusics.Add(sound, song);
@@ -257,6 +279,7 @@ namespace ArcadeMaker.Engines.MonoGame.Core
             finally
             {
                 openedStreams.ForEach(s => s.Dispose());
+                BundledProjectFileStream?.Dispose();
             }
         }
 

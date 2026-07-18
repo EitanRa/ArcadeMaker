@@ -28,7 +28,13 @@ public class SerializeableGameProject
 
     public static Stream? OpenStream(string path, string key, bool isText)
     {
-        bool bundled = System.IO.Path.GetExtension(path) switch
+        using Stream resFileStream = File.OpenRead(path);
+        return OpenStream(resFileStream, key, isText, path);
+    }
+
+    public static Stream? OpenStream(Stream projectFileStream, string key, bool isText, string? path = null)
+    {
+        bool bundled = path == null || System.IO.Path.GetExtension(path) switch
         {
             FileFormat_AMP => false,
             FileFormat_AMPB => true,
@@ -38,8 +44,7 @@ public class SerializeableGameProject
         if (bundled)
         {
             // create resource reader
-            using FileStream resFileStream = File.OpenRead(path);
-            using System.Resources.NetStandard.ResXResourceReader resReader = new(resFileStream);
+            using System.Resources.NetStandard.ResXResourceReader resReader = new(projectFileStream);
 
             // search the key
             var dictionary = resReader.GetEnumerator();

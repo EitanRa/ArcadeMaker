@@ -48,7 +48,7 @@ namespace ArcadeMaker.IDE
 
         public T? GetItem<T>(string name) where T : GameItem => items.OfType<T>().FirstOrDefault(i => i.name == name);
 
-        public void Save(string path, bool successMsg = true)
+        public void Save(string path, bool successMsg = true, Stream? alsoSaveTo = null)
         {
             string projectFileDir = path.FileLocation();
 

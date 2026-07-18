@@ -595,26 +595,21 @@ namespace ArcadeMaker.IDE
 
         private async void saveGameBtn_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("This option is not available yet.");
-            return;
-
             // old code
-            using (SaveFileDialog saveFileDialog = new SaveFileDialog())
-            {
-                saveFileDialog.Filter = "Executeable File|*.exe";
-                if (Environment.project.projectFilePath != null)
-                    saveFileDialog.FileName = Environment.project.name + ".exe";
-                else
-                    saveFileDialog.FileName = "Game " + DateTime.Now.ToString("dd-MM-yy") + ".exe";
+            using SaveFileDialog saveFileDialog = new();
+            saveFileDialog.Filter = "Executeable File|*.exe";
+            if (Environment.project.name != null)
+                saveFileDialog.FileName = Environment.project.name + ".exe";
+            else
+                saveFileDialog.FileName = "Game " + DateTime.Now.ToString("dd-MM-yy") + ".exe";
 
-                if (saveFileDialog.ShowDialog() == DialogResult.OK)
+            if (saveFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                await Task.Run(() =>
                 {
-                    await Task.Run(() =>
-                    {
-                        Environment.GenerateExe(savePath: saveFileDialog.FileName, run: false, console: false);
-                        MessageBox.Show("Game saved.", ".exe File Saved", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    });
-                }
+                    Environment.GenerateExe(savePath: saveFileDialog.FileName, run: false, console: false);
+                    MessageBox.Show("Game saved.", ".exe File Saved", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                });
             }
         }
 

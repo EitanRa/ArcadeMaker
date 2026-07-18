@@ -52,22 +52,30 @@ public partial interface IGame
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal RoomInstance GetActivatedRoom() => CurrentRoom ?? throw new NoActivatedRoomException(); // TODO: skip this method...
     private static event EventHandler? OnProjectLoadingComplete;
-    public bool LoadFromProject(SerializeableGameProject sproject, string filePath)
+    public bool LoadFromProject(SerializeableGameProject sproject, Stream? bundledProjectFileStream, string? filePath)
     {
-        string fileDir = System.IO.Path.GetDirectoryName(filePath) ?? throw new ArgumentException($"The given path was invalid ('{filePath}').");
+        // validate that arguments are valid
+        if (bundledProjectFileStream == null && filePath == null)
+            throw new ArgumentNullException(message: $"Argument {nameof(bundledProjectFileStream)} OR argument {nameof(filePath)} must have a value.", null);
+        
+        // find directory of project file, if there's one
+        string? fileDir = System.IO.Path.GetDirectoryName(filePath);
 
         // check file format
-        string fileExt = filePath.Substring(filePath.LastIndexOf('.'));
+        string fileExt = filePath == null ? SerializeableGameProject.FileFormat_AMPB : filePath.Substring(filePath.LastIndexOf('.'));
         bool bundled = fileExt switch
         {
             SerializeableGameProject.FileFormat_AMP => false,
             SerializeableGameProject.FileFormat_AMPB => true,
             _ => throw new FormatException($"Unsupported project file format ({fileExt}).")
         };
+
         try
         {
-            // if it's a bundled project format, create the project file and a ResourceWriter for it
-            using var bundledProjectFileStream = bundled ? File.OpenRead(filePath) : null;
+            // if it's a bundled project format, create a ResourceReader for the project file
+            FileStream? fileStream = null;
+            bundledProjectFileStream ??= bundled ? fileStream = File.OpenRead(filePath!) : null;
+            using var _ = fileStream; // dispose it if it exists
             using ResXResourceReader? resourceReader = bundled ? new(bundledProjectFileStream!) : null;
 
             // a method to get an absolute path from a relative one
@@ -272,9 +280,10 @@ public partial interface IGame
     /// <summary>
     /// Loads resources info.
     /// </summary>
-    /// <param name="filePath">The path to the project file to run.</param>
+    /// <param name="path">The path to the project file to run.</param>
+    /// <param name="bundledProjectFileStream">The bundled project file stream.</param>
     /// <returns><c>true</c> if the given file was a bundled project file. Otherwise, <c>false</c>.</returns>
-    public bool LoadFromProjectFile(string path)
+    public bool LoadFromProjectFile(Stream? bundledProjectFileStream, string? path)
     {
         Type[] serializerExtraTypes =
         [
@@ -307,10 +316,10 @@ public partial interface IGame
                     typeof(TextureAtlasMap.Item)
         ];
 
-        string fileDir = System.IO.Path.GetDirectoryName(path)!;
+        string? fileDir = System.IO.Path.GetDirectoryName(path);
 
         // check file format
-        string fileExt = path.Substring(path.LastIndexOf('.'));
+        string fileExt = bundledProjectFileStream != null ? SerializeableGameProject.FileFormat_AMPB : path!.Substring(path.LastIndexOf('.'));
         bool bundled = fileExt switch
         {
             SerializeableGameProject.FileFormat_AMP => false,
@@ -319,12 +328,12 @@ public partial interface IGame
         };
 
         XmlSerializer serializer = new(typeof(SerializeableGameProject), extraTypes: serializerExtraTypes);
-        SerializeableGameProject sproject = null;
-        using (Stream reader = bundled ? SerializeableGameProject.OpenStream(path, "*", true)! : new FileStream(path, FileMode.Open, FileAccess.Read))
+        SerializeableGameProject? sproject = null;
+        using (Stream xmlReader = bundled ? (path == null ? SerializeableGameProject.OpenStream(bundledProjectFileStream!, "*", true) : SerializeableGameProject.OpenStream(path, "*", true))! : new FileStream(path!, FileMode.Open, FileAccess.Read))
         {
             try
             {
-                sproject = (SerializeableGameProject)serializer.Deserialize(reader);
+                sproject = (SerializeableGameProject)serializer.Deserialize(xmlReader);
             }
             catch (Exception ex)
             {
@@ -332,6 +341,6 @@ public partial interface IGame
             }
         }
 
-        return LoadFromProject(sproject, path);
+        return LoadFromProject(sproject, bundledProjectFileStream, path);
     }
 }
