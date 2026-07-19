@@ -1,4 +1,5 @@
-﻿using ArcadeMaker.IDE.Debugging;
+﻿using ArcadeMaker.Core.Runtime;
+using ArcadeMaker.IDE.Debugging;
 using ArcadeMaker.IDE.Items;
 using ArcadeMaker.IDE.Properties;
 using System;
@@ -987,8 +988,11 @@ namespace ArcadeMaker.IDE
 
         private void debugInputBtn_Click(object sender, EventArgs e)
         {
-            DebugConsoleWriteLine(debugInputBox.Text, true);
+            string input = debugInputBox.Text;
+            DebugConsoleWriteLine(input, true);
             debugInputBox.Text = "";
+
+            GameRunner.SendDebugInput(input);
         }
 
         private void debugInputBox_TextChanged(object sender, EventArgs e)

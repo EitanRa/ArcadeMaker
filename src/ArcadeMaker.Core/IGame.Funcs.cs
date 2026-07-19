@@ -16,6 +16,37 @@ namespace ArcadeMaker.Core;
 public partial interface IGame
 {
     /// <summary>
+    /// Writes a value to the debug output.
+    /// </summary>
+    /// <param name="_">The calling EXP instance (may be null for global calls).</param>
+    /// <param name="args">An array of arguments; the first element is converted to string and written to the debug output.</param>
+    [ExpFunc(1, CustomName = "debug")]
+    [Param("output", ParamType.Any, "The output to print to the debug console.")]
+    public Exp.Void DebugLog(Exp.Instance? _, IValue?[] args)
+    {
+        GameRunner.DebugConsoleWriteLine(this, args[0]);
+        return Exp.Void.Return;
+    }
+
+    /// <summary>
+    /// Blocks the game thread until an input is received from the debug console, and returns the received input.
+    /// </summary>
+    /// <param name="_">(Unused).</param>
+    /// <param name="args">(Unused).</param>
+    /// <returns>The received input.</returns>
+    [ExpFunc]
+    public IValue DebugReadLine(Exp.Instance? _, IValue?[] args) => GameRunner.DebugConsoleReadLine().ToExpString();
+
+    /// <summary>
+    /// Blocks the game thread until an input is received from the debug console, and returns the received input as number, or null if the input was not a number.
+    /// </summary>
+    /// <param name="_">(Unused).</param>
+    /// <param name="args">(Unused).</param>
+    /// <returns>The received input as number, or null if it was not a number.</returns>
+    [ExpFunc]
+    public IValue? DebugReadNumber(Exp.Instance? _, IValue?[] args) => double.TryParse(GameRunner.DebugConsoleReadLine(), out double num) ? num.ToExp() : null;
+
+    /// <summary>
     /// Checks whether the specified keyboard key is currently down.
     /// </summary>
     /// <param name="_">The calling EXP instance (unused).</param>
