@@ -31,6 +31,7 @@ namespace ArcadeMaker.IDE
         /// </summary>
         private void InitializeComponent()
         {
+            components = new System.ComponentModel.Container();
             TreeNode treeNode1 = new TreeNode("Sprites");
             TreeNode treeNode2 = new TreeNode("Sounds");
             TreeNode treeNode3 = new TreeNode("Backgrounds");
@@ -84,12 +85,15 @@ namespace ArcadeMaker.IDE
             debugInputBox = new TextBox();
             debugConsoleBox = new RichTextBox();
             splitter2 = new Splitter();
+            debugInputBoxBalloon = new ToolTip(components);
+            debugInputErrorProvider = new ErrorProvider(components);
             toolStrip1.SuspendLayout();
             mainMenuStrip.SuspendLayout();
             errorsPanel.SuspendLayout();
             buttomPanelTabs.SuspendLayout();
             tabPage1.SuspendLayout();
             debugConsoleTab.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)debugInputErrorProvider).BeginInit();
             SuspendLayout();
             // 
             // projectTree
@@ -492,6 +496,17 @@ namespace ArcadeMaker.IDE
             splitter2.TabIndex = 7;
             splitter2.TabStop = false;
             // 
+            // debugInputBoxBalloon
+            // 
+            debugInputBoxBalloon.IsBalloon = true;
+            debugInputBoxBalloon.ToolTipIcon = ToolTipIcon.Error;
+            debugInputBoxBalloon.ToolTipTitle = "Invalid Debug Input";
+            // 
+            // debugInputErrorProvider
+            // 
+            debugInputErrorProvider.BlinkStyle = ErrorBlinkStyle.NeverBlink;
+            debugInputErrorProvider.ContainerControl = this;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -520,6 +535,7 @@ namespace ArcadeMaker.IDE
             tabPage1.ResumeLayout(false);
             debugConsoleTab.ResumeLayout(false);
             debugConsoleTab.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)debugInputErrorProvider).EndInit();
             ResumeLayout(false);
             PerformLayout();
 
@@ -570,6 +586,8 @@ namespace ArcadeMaker.IDE
         private Label debugInputLbl;
         private CheckBox debugConsoleTimestampBox;
         private Button clearDebugConsoleBtn;
+        private ToolTip debugInputBoxBalloon;
+        private ErrorProvider debugInputErrorProvider;
     }
 }
 

@@ -530,7 +530,8 @@ namespace ArcadeMaker.IDE
             Debugging.Debug.OnDebugBuild += OnDebugBuild;
             errorsBox.AttachMenu();
 
-            Core.Runtime.GameRunner.OnDebugOutput += (s, output) => DebugConsoleWriteLine(output, false);
+            Core.Runtime.DebugConsole.OnDebugOutput += (s, output) => DebugConsoleWriteLine(output, false);
+            debugInputErrorProvider.SetIconPadding(debugInputBox, -20); // make the icon appear INSIDE the text box
         }
 
         private void LoadRecentProjectsMenu()
@@ -992,12 +993,21 @@ namespace ArcadeMaker.IDE
             DebugConsoleWriteLine(input, true);
             debugInputBox.Text = "";
 
-            GameRunner.SendDebugInput(input);
+            DebugConsole.SendDebugInput(input);
         }
 
         private void debugInputBox_TextChanged(object sender, EventArgs e)
         {
-            debugInputBtn.Enabled = debugInputBox.Text.Length >= 1;
+            bool invalid = debugInputBox.Text.Length == 0;
+            if (!invalid && DebugConsole.InputValidator?.Invoke(debugInputBox.Text) is { } error)
+            {
+                debugInputErrorProvider.SetError(debugInputBox, error);
+                invalid = true;
+            }
+            else
+                debugInputErrorProvider.SetError(debugInputBox, "");
+
+            debugInputBtn.Enabled = !invalid;
         }
 
         private void clearDebugConsoleBtn_Click(object sender, EventArgs e)

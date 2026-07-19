@@ -24,7 +24,7 @@ public partial interface IGame
     [Param("output", ParamType.Any, "The output to print to the debug console.")]
     public Exp.Void DebugLog(Exp.Instance? _, IValue?[] args)
     {
-        GameRunner.DebugConsoleWriteLine(this, args[0]);
+        DebugConsole.WriteLine(this, args[0]);
         return Exp.Void.Return;
     }
 
@@ -34,17 +34,32 @@ public partial interface IGame
     /// <param name="_">(Unused).</param>
     /// <param name="args">(Unused).</param>
     /// <returns>The received input.</returns>
-    [ExpFunc]
-    public IValue DebugReadLine(Exp.Instance? _, IValue?[] args) => GameRunner.DebugConsoleReadLine().ToExpString();
+    [ExpFunc(0, 1)]
+    [Param("message", ParamType.Any, "A message to print to the debug console before picking the value.", Optional = true)]
+    public IValue DebugReadLine(Exp.Instance? _, IValue?[] args)
+    {
+        if (args is { Length: > 0 })
+            DebugLog(null, [args[0]]);
+
+        return DebugConsole.ReadLine().ToExpString();
+    }
 
     /// <summary>
-    /// Blocks the game thread until an input is received from the debug console, and returns the received input as number, or null if the input was not a number.
+    /// Blocks the game thread until an input number is received from the debug console, and returns it.
     /// </summary>
     /// <param name="_">(Unused).</param>
     /// <param name="args">(Unused).</param>
-    /// <returns>The received input as number, or null if it was not a number.</returns>
-    [ExpFunc]
-    public IValue? DebugReadNumber(Exp.Instance? _, IValue?[] args) => double.TryParse(GameRunner.DebugConsoleReadLine(), out double num) ? num.ToExp() : null;
+    /// <returns>The received input number.</returns>
+    [ExpFunc(0, 1)]
+    [Param("message", ParamType.Any, "A message to print to the debug console before picking the value.", Optional = true)]
+    public IValue DebugReadNumber(Exp.Instance? _, IValue?[] args)
+    {
+        if (args is { Length: > 0 })
+            DebugLog(null, [args[0]]);
+
+        double num = double.Parse(DebugConsole.ReadLine(line => double.TryParse(line, out num) ? null : "A number was expected."));
+        return num.ToExp();
+    }
 
     /// <summary>
     /// Checks whether the specified keyboard key is currently down.
