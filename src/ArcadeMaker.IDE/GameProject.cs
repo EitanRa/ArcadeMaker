@@ -29,9 +29,9 @@ namespace ArcadeMaker.IDE
     public class GameProject
     {
         public string name = "Project";
-        public string projectFilePath = null;
-        public ObservableCollection<GameItem> items = new ObservableCollection<GameItem>();
-        public List<AssemblyReference> assemblyReferences = new List<AssemblyReference>();
+        public string? projectFilePath = null;
+        public ObservableCollection<GameItem> items = [];
+        public List<AssemblyReference> assemblyReferences = [];
 
         public bool saved { get; private set; } = false;
 

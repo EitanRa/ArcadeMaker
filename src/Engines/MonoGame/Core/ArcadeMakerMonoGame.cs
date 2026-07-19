@@ -79,8 +79,6 @@ namespace ArcadeMaker.Engines.MonoGame.Core
         public TextureAtlas MainTextureAtlas { get; private set; }
         public string MainTextureAtlasFilePath { get; set; }
 
-        public StringWriter Debug { get; } = new StringWriter();
-
         // runtime private data
         private GameRunner<ArcadeMakerMonoGame> GameRunner { get; set; }
 
@@ -646,8 +644,6 @@ namespace ArcadeMaker.Engines.MonoGame.Core
             if (MainTextureAtlas?.Texture?.IsDisposed == false)
                 MainTextureAtlas.Texture.Dispose();
             Fonts.All.ForEach(f => { if (!f.Value.Texture.IsDisposed) f.Value.Texture.Dispose(); });
-
-            Debug?.Dispose();
 
             base.Dispose(disposing);
         }

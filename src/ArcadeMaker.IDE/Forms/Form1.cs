@@ -312,7 +312,7 @@ namespace ArcadeMaker.IDE
             script.InitDefaultCode();
             InsertItemToTree(script, e);
             CreateItem(script, null, show: false);
-            
+
             script.editor.MdiParent = this;
             script.editor.Show();
         }
@@ -341,7 +341,7 @@ namespace ArcadeMaker.IDE
         {
             int index = 0;
 
-            restart:
+        restart:
             foreach (GameItem pitem in Environment.project.items)
             {
                 if (pitem.name == baseName + index)
@@ -513,7 +513,7 @@ namespace ArcadeMaker.IDE
                 "      this.Close(); // close the program https://www.google.co.il naviagte http://www.sport5.co.il\n      " +
                 "\n      return 0;\n   }\n" +
                 "}";
-            
+
             if (show)
             {
                 Form debug = new Form { Size = new Size(500, 500) };
@@ -528,6 +528,8 @@ namespace ArcadeMaker.IDE
 
             Debugging.Debug.OnDebugBuild += OnDebugBuild;
             errorsBox.AttachMenu();
+
+            Core.Runtime.GameRunner.OnDebugOutput += (s, output) => DebugConsoleWriteLine(output, false);
         }
 
         private void LoadRecentProjectsMenu()
@@ -595,6 +597,16 @@ namespace ArcadeMaker.IDE
 
         private async void saveGameBtn_Click(object sender, EventArgs e)
         {
+#if DEBUG
+            MessageBox.Show(
+                "Generating a standalone .exe is not implemented yet. For now, this button will generate a dll file, that replacing it with the original WindowsDX project folder's dll and then executing the .exe would run the game.",
+                "[DEBUG MODE]"
+            );
+#else
+            MessageBox.Show("This option is not available yet.");
+            return;
+#endif
+
             // old code
             using SaveFileDialog saveFileDialog = new();
             saveFileDialog.Filter = "Executeable File|*.exe";
@@ -627,7 +639,7 @@ namespace ArcadeMaker.IDE
             if (saveAs)
             {
                 using SaveFileDialog dialog = new();
-                dialog.Filter = $"{Global.ProgramName} Project|*{GameProject.FileFormats.ArcadeMakerProject}|{Global.ProgramName} Bundled Project|*{GameProject.FileFormats.ArcadeMakerBundledProject}";
+                dialog.Filter = $"{Global.ProgramName} Bundled Project (*.ampb)|*{GameProject.FileFormats.ArcadeMakerBundledProject}|{Global.ProgramName} Project (*.amp)|*{GameProject.FileFormats.ArcadeMakerProject}";
                 if (Environment.project.name != null)
                     dialog.FileName = Environment.project.name;
                 else
@@ -928,6 +940,76 @@ namespace ArcadeMaker.IDE
         private void OnDebugBuild(object? sender, HashSet<ProjectError> e)
         {
             errorsBox.FillErrors(e);
+        }
+
+        private Font debugConsoleInputFont;
+        private bool firstDebugConsoleLine = true;
+        private void DebugConsoleWriteLine(bool input) => DebugConsoleWriteLine("", input);
+        private void DebugConsoleWriteLine(object? text, bool input)
+        {
+            debugConsoleInputFont ??= new(debugConsoleBox.Font, FontStyle.Bold);
+
+            // print
+            Debugging.Debug.InvokeIfRequired(debugConsoleBox, () =>
+            {
+                if (!firstDebugConsoleLine)
+                {
+                    // add new line and set its font to normal, so next line will be in regular format when added
+                    debugConsoleBox.AppendText("\n");
+                    debugConsoleBox.SelectionStart = debugConsoleBox.Text.Length - 1;
+                    debugConsoleBox.SelectionLength = 1;
+                    debugConsoleBox.SelectionFont = debugConsoleBox.Font;
+                }
+
+                string newLine = text?.ToString() ?? "NULL";
+                debugConsoleBox.AppendText((debugConsoleTimestampBox.Checked ? DateTime.Now.ToString("HH:mm:ss.fff") : "") + "> " + newLine);
+
+                // set input text style to bold
+                if (input && newLine.Length > 0)
+                {
+                    // select new line
+                    debugConsoleBox.SelectionStart = debugConsoleBox.Text.Length - newLine.Length;
+                    debugConsoleBox.SelectionLength = newLine.Length;
+
+                    // set its font to bold
+                    debugConsoleBox.SelectionFont = debugConsoleInputFont;
+
+                    // unselect
+                    debugConsoleBox.SelectionLength = 0;
+                    debugConsoleBox.SelectionStart = debugConsoleBox.Text.Length - 1;
+                    debugConsoleBox.SelectionFont = debugConsoleBox.Font;
+                }
+
+                debugConsoleBox.ScrollToCaret();
+                firstDebugConsoleLine = false;
+            });
+        }
+
+        private void debugInputBtn_Click(object sender, EventArgs e)
+        {
+            DebugConsoleWriteLine(debugInputBox.Text, true);
+            debugInputBox.Text = "";
+        }
+
+        private void debugInputBox_TextChanged(object sender, EventArgs e)
+        {
+            debugInputBtn.Enabled = debugInputBox.Text.Length >= 1;
+        }
+
+        private void clearDebugConsoleBtn_Click(object sender, EventArgs e)
+        {
+            debugConsoleBox.Text = "";
+            firstDebugConsoleLine = true;
+        }
+
+        private void debugInputBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                debugInputBtn.PerformClick();
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+            }
         }
     }
 

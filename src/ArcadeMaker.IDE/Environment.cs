@@ -138,6 +138,7 @@ namespace ArcadeMaker.IDE
 
         private static void EmbedResourceFileToExe(string exePath, Stream data, string saveAs)
         {
+            // TODO: after adding the embedded resource - generate a standalone .exe
             using var assembly = AssemblyDefinition.ReadAssembly(exePath);
 
             // create the EmbeddedResource
@@ -149,12 +150,8 @@ namespace ArcadeMaker.IDE
 
             // add the resource to the module and save
             assembly.MainModule.Resources.Add(resource);
-
-            // strip the public key to prevent strong-name validation failures
-            assembly.Name.PublicKey = null;
-            assembly.MainModule.Attributes &= ~ModuleAttributes.StrongNameSigned;
-
-            assembly.Write(saveAs);
+            string newDll = saveAs.Substring(0, saveAs.Length - 4) + ".dll";
+            assembly.Write(newDll);
         }
     }
 }

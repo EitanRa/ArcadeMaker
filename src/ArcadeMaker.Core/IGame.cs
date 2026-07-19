@@ -39,8 +39,6 @@ public partial interface IGame
     string MainTextureAtlasFilePath { get; set; }
     int CurrentViewIndex { get; }
 
-    StringWriter Debug { get; }
-
     void Init();
     Exp.Void DrawInstance(Runtime.Instance inst);
     void DrawLine(double x1, double y1, double x2, double y2, double thickness);

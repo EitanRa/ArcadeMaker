@@ -16,19 +16,6 @@ namespace ArcadeMaker.Core;
 public partial interface IGame
 {
     /// <summary>
-    /// Writes a value to the debug output.
-    /// </summary>
-    /// <param name="_">The calling EXP instance (may be null for global calls).</param>
-    /// <param name="args">An array of arguments; the first element is converted to string and written to the debug output.</param>
-    [ExpFunc(1, CustomName = "debug")]
-    Exp.Void DebugLog(Exp.Instance? _, IValue?[] args)
-    {
-        Debug.WriteLine("".ToExpString() + (args[0]?.ToString() ?? "NULL"));
-
-        return Exp.Void.Return;
-    }
-
-    /// <summary>
     /// Checks whether the specified keyboard key is currently down.
     /// </summary>
     /// <param name="_">The calling EXP instance (unused).</param>

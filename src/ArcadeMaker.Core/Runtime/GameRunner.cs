@@ -11,6 +11,12 @@ using ArcadeMaker.Core.ExpSrc;
 
 namespace ArcadeMaker.Core.Runtime
 {
+    public static class GameRunner
+    {
+        public static event EventHandler<object?>? OnDebugOutput;
+        internal static void DebugConsoleWriteLine(IGame game, object? output) => OnDebugOutput?.Invoke(game, output);
+    }
+
     public sealed class GameRunner<TGame> where TGame : IGame // we COULD use a non-generic class, but this approach allows the JIT to optimize the code by skipping the vtable lookup for the IGame interface, which is a bit faster. it's also important to mark the classes that implement IGame as 'sealed' (not sure if this comment is actually true...).
     {
         public TGame Game { get; }
@@ -464,6 +470,18 @@ namespace ArcadeMaker.Core.Runtime
             }
 
             return inst;
+        }
+
+        /// <summary>
+        /// Writes a value to the debug output.
+        /// </summary>
+        /// <param name="_">The calling EXP instance (may be null for global calls).</param>
+        /// <param name="args">An array of arguments; the first element is converted to string and written to the debug output.</param>
+        [ExpFunc(1, CustomName = "debug")]
+        public Exp.Void DebugLog(Exp.Instance? _, IValue?[] args)
+        {
+            GameRunner.DebugConsoleWriteLine(Game, args[0]);
+            return Exp.Void.Return;
         }
 
         public void Run(bool invokeInit = true)
