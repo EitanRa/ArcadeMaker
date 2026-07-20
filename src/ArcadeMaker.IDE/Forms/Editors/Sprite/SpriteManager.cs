@@ -97,17 +97,17 @@ namespace ArcadeMaker.IDE
                 Bitmap bmp = imageListView.SelectedItems[0].Tag as Bitmap;
                 int index = imageListView.SelectedIndices[0];
 
-                SpriteDesigner designer = new SpriteDesigner(bmp);
-                designer.Finished += (s, ea) =>
+                using SpriteDesigner designer = new SpriteDesigner(bmp);
+                
+                if (designer.ShowDialog() == DialogResult.OK)
                 {
                     try
                     {
-                        images.Images[index] = designer.image;
+                        images.Images[index] = designer.GetResult();
                         imageListView.Refresh();
                     }
                     catch { }
-                };
-                designer.ShowDialog();
+                }
             }
         }
 
