@@ -294,7 +294,8 @@ namespace ArcadeMaker.Engines.MonoGame.Core
                     {
                         if (sound.Type == Sound.Types.SoundEffect)
                         {
-                            var effect = SoundEffect.FromStream(OpenStream(sound.FilePath));
+                            var stream = OpenStream(sound.FilePath);
+                            var effect = SoundEffect.FromStream(stream);
                             soundEffects.Add(sound, effect);
                         }
                         else if (sound.Type == Sound.Types.BackgroundMusic)

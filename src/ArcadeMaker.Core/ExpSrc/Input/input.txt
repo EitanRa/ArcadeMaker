@@ -12,7 +12,7 @@ class Input ()
 	
 	private constructor(){}
 
-	func createBasicControls()
+	static func createBasicControls()
 	{
 		addControl(new BasicKeyboardControl())
 	}

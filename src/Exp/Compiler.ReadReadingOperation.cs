@@ -79,12 +79,14 @@ public partial class Interpreter
             }
             else if (span is InstInitSpan init)
             {
-                if (init.DefName.Class != null)
+                if (init.DefName == null)
+                    Error("Class name was expected.", init);
+                else if (init.DefName.Class != null)
                     value = new InitOperation(init.DefName.Class, ReadParamListOps());
                 else if (init.DefName.Extern != null)
                     value = new ExternTypeInitOperation(init.DefName.Extern, ReadParamListOps());
                 else
-                    Error($"Class name was expected, but function received.");
+                    Error($"Class name was expected, but {((IExpItem)init.DefName.Defination).GetItemName()} received.", init);
             }
             else if (span is WordSpan word)
             {
