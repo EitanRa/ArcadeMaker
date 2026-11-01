@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using ArcadeMaker.Core.Exceptions;
 using ArcadeMaker.Core.ExpSrc;
 using ArcadeMaker.Core.Math;
@@ -253,39 +254,20 @@ public partial interface IGame
 
         // if 3rd argument is an instance, only check it
         if (args.Length >= 3 && args[2] is Runtime.Instance other)
-            return PlaceMeeting(x, y, angle, other);
+            return inst.WouldIntersectAt(x, y, angle, other);
 
         // if 3rd argument is a type, check all instances of that type
         else if (args[2]!.IsInst) // IsInst means Exp.Instance, which is what std::Type is
         {
             foreach (var i in GetActivatedRoom().Instances)
             {
-                if ((args.Length == 2 || (i.Sprite != null && i.def.ExpType == args[2])) && ((IValue)PlaceMeeting(x, y, angle, i)).Bool)
+                if ((args.Length == 2 || (i.Sprite != null && i.def.ExpType == args[2])) && inst.WouldIntersectAt(x, y, angle, i))
                     return true;
             }
             return false;
         }
         else
             throw new ArgumentException("Invalid argument type for PlaceMeeting", paramName: nameof(args) + "[2]");
-
-        BoolValue PlaceMeeting(double x, double y, int angle, Runtime.Instance other)
-        {
-            if (inst == other || inst.Mask is null || other.Mask is null)
-                return false;
-
-            double originalX = inst.Mask.X, originalY = inst.Mask.Y, originalAngle = inst.Mask.Angle;
-            inst.Mask.X = x; // note that this actually updates the value of inst.X
-            inst.Mask.Y = y; // same
-            inst.Mask.Angle = angle; // same
-
-            bool result = SeparatingAxisTheorem.AreRectanglesIntersecting(inst.Mask, other.Mask);
-
-            inst.Mask.X = originalX;
-            inst.Mask.Y = originalY;
-            inst.Mask.Angle = originalAngle;
-
-            return result;
-        }
     }
 
     /// <summary>

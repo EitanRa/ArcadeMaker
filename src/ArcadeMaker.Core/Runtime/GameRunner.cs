@@ -16,12 +16,14 @@ public sealed class GameRunner<TGame> where TGame : IGame // we COULD use a non-
 {
     public TGame Game { get; }
     public Interpreter Interpreter { get; }
+    public Instance.Creator GameObjectCreator { get; }
 
-    public GameRunner(TGame game, bool removeEmptyEvents = true)
+    public GameRunner(TGame game, Instance.Creator gameObjectCreator, bool removeEmptyEvents = true)
     {
         ArgumentNullException.ThrowIfNull(game);
 
         this.Game = game;
+        this.GameObjectCreator = gameObjectCreator;
         game.Scripts.AddRange(ExpSrc.ExpSrc.GetScripts());
         Interpreter = new();
 
@@ -286,7 +288,7 @@ public sealed class GameRunner<TGame> where TGame : IGame // we COULD use a non-
     public Runtime.Instance CreateInstance(Exp.Instance? _, IValue?[] args)
     {
         ObjectModel model = Game.Objects.FirstOrDefault(m => m.Class.ExpType == args[2].ThrowIfNull()) ?? throw new ArgumentException("Value of argument type must be a type of a game object.");
-        Runtime.Instance inst = new(Game.Sprites, model);
+        Runtime.Instance inst = GameObjectCreator(Game.Sprites, model);
         inst.X.Value = args[0];
         inst.Y.Value = args[1];
         Game.GetActivatedRoom().AddInstance(inst);
@@ -375,7 +377,7 @@ public sealed class GameRunner<TGame> where TGame : IGame // we COULD use a non-
         if (!Game.Rooms.Contains(roomModel))
             throw new Exception("The specified room is not part of the game.");
 
-        var roomInstance = new RoomInstance(Game, roomModel);
+        var roomInstance = new RoomInstance(Game, roomModel, GameObjectCreator);
         GoToRoom(roomInstance);
     }
 

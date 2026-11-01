@@ -32,7 +32,7 @@ namespace ArcadeMaker.Core.Runtime
 
         public List<Instance> DeactivatedInstances { get; } = [];
 
-        public RoomInstance(IGame game, RoomModel model)
+        public RoomInstance(IGame game, RoomModel model, Runtime.Instance.Creator gameObjectCreator)
         {
             this.Model = model;
             this.Game = game;
@@ -42,7 +42,7 @@ namespace ArcadeMaker.Core.Runtime
             int indexOfInstWithCreationCode = 0;
             foreach (var item in model.InitMap.Items)
             {
-                var instance = new Instance(game.Sprites, item.Object);
+                var instance = gameObjectCreator(game.Sprites, item.Object);
                 instance.X.Value = item.X.ToExp();
                 instance.Y.Value = item.Y.ToExp();
                 instance.ImageIndex.Value = item.ImageIndex.ToExp();

@@ -234,7 +234,7 @@ namespace ArcadeMaker.Engines.MonoGame.Core
 
             try
             {
-                GameRunner = new GameRunner<ArcadeMakerMonoGame>(this);
+                GameRunner = new GameRunner<ArcadeMakerMonoGame>(this, Runtime.GameObject.Ctor);
                 GameRunner.Run(invokeInit: false);
             }
             catch (Exception ex)

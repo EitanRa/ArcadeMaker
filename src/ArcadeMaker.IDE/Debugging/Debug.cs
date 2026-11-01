@@ -71,7 +71,7 @@ internal static class Debug
                 return new RoomModel(r.name, "", 0, 0, default, new([.. roomInsts]));
             }));
 
-            GameRunner = new(futileGame, removeEmptyEvents: false);
+            GameRunner = new(futileGame, (sprites, model) => null!, removeEmptyEvents: false);
 
             // catch errors in event scripts
             futileGame.Objects.ForEach(model =>

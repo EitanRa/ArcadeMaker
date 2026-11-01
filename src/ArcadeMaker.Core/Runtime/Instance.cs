@@ -10,8 +10,10 @@ using System.Reflection;
 
 namespace ArcadeMaker.Core.Runtime;
 
-public class Instance : Exp.Instance
+public abstract class Instance : Exp.Instance
 {
+    public delegate Instance Creator(List<Sprite> sprites, ObjectModel model);
+
     public const int NUMBER_OF_ALARMS = 11;
 
     public ObjectModel Model { get; }
@@ -63,6 +65,7 @@ public class Instance : Exp.Instance
     public TypeVariable OnPathStepFinished { get; }
 
     public MirrorRect? Mask { get; private set; }
+    public abstract bool WouldIntersectAt(double x, double y, double angle, Instance other);
 
     private double depth;
     public event EventHandler<double>? DepthChanged;
